@@ -1,0 +1,230 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>CURP Demo</title>
+    <style>
+      :root {
+        --bg: #fafbfc;
+        --card: #ffffff;
+        --accent: #2f6f62;
+        --accent-dark: #1f5547;
+        --muted: #6b7280;
+        --border: #e5e7eb;
+        --text: #1f2937;
+        --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.04);
+        --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.08);
+      }
+
+      * { box-sizing: border-box; }
+
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        background: var(--bg);
+        margin: 0;
+        padding: 48px 40px;
+        color: var(--text);
+        font-size: 15px;
+        line-height: 1.7;
+      }
+
+      .welcome {
+        max-width: 1200px;
+        margin: 0 auto;
+      }
+
+      h1 {
+        margin: 8px 0 12px 0;
+        font-size: 34px;
+        font-weight: 700;
+        color: var(--accent-dark);
+        letter-spacing: -0.02em;
+        text-align: center;
+      }
+
+      .subtitle {
+        text-align: center;
+        color: var(--muted);
+        margin-bottom: 22px;
+      }
+
+      .card {
+        background: #fff;
+        border-radius: 18px;
+        padding: 26px;
+        margin-bottom: 20px;
+        box-shadow: var(--shadow-sm);
+        border: 1px solid var(--border);
+      }
+
+      .welcome-logos {
+        display: flex;
+        justify-content: center;
+        gap: 28px;
+        align-items: center;
+        margin: 12px 0 8px 0;
+        flex-wrap: wrap;
+      }
+
+      .welcome-logos img {
+        height: 84px;
+        width: auto;
+        object-fit: contain;
+      }
+
+      .welcome-links {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        gap: 16px;
+        margin-top: 16px;
+      }
+
+      .welcome-link {
+        display: block;
+        padding: 16px 18px;
+        border-radius: 14px;
+        background: linear-gradient(135deg, rgba(214, 239, 232, 0.6) 0%, rgba(255, 255, 255, 0.9) 100%);
+        border: 1px solid rgba(47, 111, 98, 0.2);
+        color: var(--accent-dark);
+        text-decoration: none;
+        font-weight: 600;
+        box-shadow: var(--shadow-sm);
+        transition: all 0.2s ease;
+        text-align: center;
+      }
+
+      .welcome-link:hover {
+        transform: translateY(-2px);
+        box-shadow: var(--shadow-md);
+      }
+
+      .welcome-split {
+        display: grid;
+        grid-template-columns: 1.1fr 0.9fr;
+        gap: 22px;
+        align-items: stretch;
+      }
+
+      .paper-frame {
+        width: 100%;
+        height: 360px;
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        background: #fff;
+        overflow: hidden;
+      }
+
+      .paper-frame iframe {
+        width: 100%;
+        height: 100%;
+        border: none;
+      }
+
+      .welcome-actions {
+        margin-top: 18px;
+        display: flex;
+        justify-content: center;
+      }
+
+      .btn {
+        background: linear-gradient(135deg, var(--accent) 0%, #4a9b87 100%);
+        color: #fff;
+        border: none;
+        padding: 14px 32px;
+        border-radius: 12px;
+        cursor: pointer;
+        font-weight: 600;
+        font-size: 14px;
+        text-decoration: none;
+      }
+
+      .feature-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        gap: 16px;
+        margin-top: 16px;
+      }
+
+      .small {
+        font-size: 13px;
+        color: var(--muted);
+        line-height: 1.6;
+      }
+
+      @media (max-width: 900px) {
+        .welcome-split { grid-template-columns: 1fr; }
+        .welcome-logos img { height: 70px; }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="welcome">
+      <div class="card">
+        <div class="welcome-logos">
+          <img src="static/fudan_logo.png" alt="Fudan University Logo">
+          <img src="static/disc_logo.jpg" alt="DISC Logo">
+          <img src="static/logo.png" alt="Lab Logo">
+        </div>
+        <h1>CURP：多样化虚拟用户画像与回答生成平台</h1>
+        <div class="subtitle">CURP: A platform for diverse virtual user profiling and response generation</div>
+
+        <div class="welcome-links">
+          <a class="welcome-link" href="https://github.com/RaidonWong/CURP_code" target="_blank" rel="noreferrer">
+            GitHub / 代码仓库
+          </a>
+          <a class="welcome-link" href="https://arxiv.org/pdf/2602.00742" target="_blank" rel="noreferrer">
+            arXiv / 论文
+          </a>
+        </div>
+
+        <div class="welcome-split" style="margin-top:20px;">
+          <div class="card" style="margin-bottom:0;">
+            <strong style="display:block; margin-bottom:12px; font-size:22px;">💡 Key Idea / 核心理念</strong>
+            <div class="small" style="font-size:15px; line-height:1.75;">
+              用户由不同的 prototype 组合而成，用户的每个行为本质上折射出若干 prototype。<br>
+              我们采用两阶段训练：第一阶段构造对应的 prototype codebook；第二阶段训练下游 LLM 理解与运用这些 prototype。<br>
+              在 CURP 中，这些 prototype 被组织在 codebook 中，从而实现大规模、可控的用户模拟。<br><br>
+              Users are composed of different prototypes, and each behavior reflects a mixture of prototypes.<br>
+              We use a two-stage training pipeline: stage 1 builds the prototype codebook; stage 2 trains the downstream LLM to understand and use these prototypes.<br>
+              CURP organizes prototypes in a codebook to enable scalable, controllable user simulation.
+            </div>
+          </div>
+          <div class="card" style="margin-bottom:0;">
+            <strong style="display:block; margin-bottom:10px; font-size:22px;">📄 Framework / 论文框架</strong>
+            <div class="paper-frame">
+              <iframe src="static/frame_final_2.pdf"></iframe>
+            </div>
+            <div class="small" style="margin-top:10px;">
+              如果未显示，请点击打开 / If not visible, open:
+              <a href="static/frame_final_2.pdf" target="_blank" rel="noreferrer">PDF</a>
+            </div>
+          </div>
+        </div>
+
+        <div class="welcome-actions">
+          <a class="btn" href="demo">开始使用 Demo / Start Demo</a>
+        </div>
+
+        <div class="feature-grid">
+          <div class="card" style="margin-bottom:0;">
+            <strong>多样化回答生成 / Diverse Answers</strong>
+            <div class="small">同一问题生成多风格回答，便于对比用户差异。</div>
+          </div>
+          <div class="card" style="margin-bottom:0;">
+            <strong>多样化画像生成 / Diverse Profiles</strong>
+            <div class="small">自动生成虚拟用户画像，模拟不同人群特征。</div>
+          </div>
+          <div class="card" style="margin-bottom:0;">
+            <strong>多样化回答与画像生成 / Diverse Answers + Profiles</strong>
+            <div class="small">同时输出画像与回答，完整呈现用户特征。/ Generate profiles and answers together for a complete user view.</div>
+          </div>
+          <div class="card" style="margin-bottom:0;">
+            <strong>单人调控 / Single‑User Control</strong>
+            <div class="small">手动调节原型索引，观察结果变化。</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </body>
+</html>
