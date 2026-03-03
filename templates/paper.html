@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block title %}Paper - 个体模拟平台{% endblock %}
+{% block content %}
+<section class="hero">
+  <h1>Paper · 支撑论文</h1>
+  <p>展示项目相关论文与技术文档，可继续补充 DOI、链接、BibTeX 等信息。</p>
+</section>
+
+<div class="card" style="margin-top:20px;">
+  <ul class="list">
+    {% for paper in papers %}
+    <li><strong>{{ paper.title }}</strong> — {{ paper.venue }} ({{ paper.year }})</li>
+    {% endfor %}
+  </ul>
+</div>
+{% endblock %}

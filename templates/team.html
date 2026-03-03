@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% block title %}Team - 个体模拟平台{% endblock %}
+{% block content %}
+<section class="hero">
+  <h1>Team · 项目工作人员</h1>
+  <p>以下为项目核心成员示例信息，可按实际人员名单继续扩展。</p>
+</section>
+
+<div class="grid" style="margin-top:20px;">
+  {% for member in members %}
+  <article class="card">
+    <h3>{{ member.name }}</h3>
+    <p class="muted">角色：{{ member.role }}</p>
+    <p class="muted">方向：{{ member.org }}</p>
+  </article>
+  {% endfor %}
+</div>
+{% endblock %}

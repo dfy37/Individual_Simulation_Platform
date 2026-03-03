@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% block title %}About - 个体模拟平台{% endblock %}
+{% block content %}
+<section class="hero">
+  <h1>About · 个体模拟平台</h1>
+  <p>
+    本平台围绕“个体的深度行为建模”展开，支持从个体理解到个体模拟的一体化研究与应用。
+    在个体理解层面，我们支持快速画像构建、参数化表示与可控编辑；在个体模拟层面，我们支持长周期事件演化、对话行为生成与策略效果评估。
+    平台也面向真实业务场景扩展，支持营销、服务与用户增长相关实验的仿真验证。
+  </p>
+</section>
+
+<div class="grid" style="margin-top:20px;">
+  <article class="card">
+    <h3>个体理解（Understanding）</h3>
+    <p class="muted">融合画像、偏好、价值观与行为线索，形成结构化且可计算的用户表示。</p>
+  </article>
+  <article class="card">
+    <h3>个体模拟（Simulation）</h3>
+    <p class="muted">构建长期生活轨迹与决策演化，模拟用户在不同阶段的行为与反馈。</p>
+  </article>
+  <article class="card">
+    <h3>策略评估（Evaluation）</h3>
+    <p class="muted">在低风险环境中测试产品策略、营销方法与服务干预效果。</p>
+  </article>
+</div>
+{% endblock %}

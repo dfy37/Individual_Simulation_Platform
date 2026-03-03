@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% block title %}Function - 个体模拟平台{% endblock %}
+{% block content %}
+<section class="hero">
+  <h1>Function · 平台功能入口</h1>
+  <p>以下是当前功能总览。你可以从这里进入 CURP 与 LifeSim，对于“暂无”能力保留了接口页面。</p>
+</section>
+
+<h2>1. 个体理解</h2>
+<div class="grid">
+  <article class="card">
+    <span class="tag active">可用</span>
+    <h3>（CURP）生成</h3>
+    <p class="muted">快速的个体画像生成与参数化模型融入。</p>
+    <a class="btn primary" href="/curp">进入 CURP</a>
+  </article>
+  <article class="card">
+    <span class="tag soon">暂无</span>
+    <h3>访谈式深度个体建模</h3>
+    <p class="muted">功能暂未上线，已预留接口。</p>
+    <a class="btn secondary" href="/coming-soon/interview-modeling">查看接口页</a>
+  </article>
+</div>
+
+<h2>2. 个体模拟</h2>
+<div class="grid">
+  <article class="card">
+    <span class="tag active">可用</span>
+    <h3>LifeSim</h3>
+    <p class="muted">长周期用户生命周期与对话模拟入口。</p>
+    <a class="btn primary" href="/lifesim">进入 LifeSim</a>
+  </article>
+  <article class="card">
+    <span class="tag soon">暂无</span>
+    <h3>营销方法的用户测试</h3>
+    <p class="muted">功能暂未上线，已预留接口。</p>
+    <a class="btn secondary" href="/coming-soon/marketing-test">查看接口页</a>
+  </article>
+</div>
+{% endblock %}

@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}个体模拟平台{% endblock %}</title>
+  <style>
+    body {font-family: Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; margin:0; background:#f5f7fb; color:#1f2937;}
+    .topbar{position:sticky;top:0;background:#0f172a;color:#fff;z-index:10;box-shadow:0 4px 16px rgba(0,0,0,.18)}
+    .topbar .inner{max-width:1120px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;padding:12px 20px}
+    .brand{font-weight:700;letter-spacing:.2px}
+    .nav{display:flex;gap:12px;flex-wrap:wrap}
+    .nav a{color:#cbd5e1;text-decoration:none;padding:8px 12px;border-radius:8px;font-size:14px}
+    .nav a.active,.nav a:hover{background:#1e293b;color:#fff}
+    .container{max-width:1080px;margin:0 auto;padding:34px 20px 56px}
+    .hero{background:linear-gradient(135deg,#0f766e,#0369a1);color:#fff;padding:32px;border-radius:16px;box-shadow:0 10px 30px rgba(3,105,161,.2)}
+    .hero h1{margin:0 0 10px;font-size:32px}
+    .hero p{margin:0;opacity:.96;line-height:1.7}
+    h2{margin:34px 0 14px;font-size:24px}
+    .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:18px}
+    .card{background:#fff;border-radius:14px;padding:20px;box-shadow:0 6px 16px rgba(15,23,42,.08);border:1px solid #e5e7eb}
+    .muted{color:#4b5563}
+    .tag{display:inline-block;font-size:12px;padding:2px 10px;border-radius:999px;margin-bottom:10px}
+    .tag.active{background:#dcfce7;color:#166534}.tag.soon{background:#fee2e2;color:#991b1b}
+    .btn{display:inline-block;padding:10px 14px;border-radius:10px;text-decoration:none;font-weight:600;font-size:14px}
+    .btn.primary{background:#0ea5e9;color:#fff}.btn.secondary{background:#e5e7eb;color:#111827}
+    .list{margin:0;padding-left:20px;line-height:1.8}
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="inner">
+      <div class="brand">个体模拟平台</div>
+      <nav class="nav">
+        <a href="/" class="{% if active_page=='about' %}active{% endif %}">About</a>
+        <a href="/function" class="{% if active_page=='function' %}active{% endif %}">Function</a>
+        <a href="/team" class="{% if active_page=='team' %}active{% endif %}">Team</a>
+        <a href="/paper" class="{% if active_page=='paper' %}active{% endif %}">Paper</a>
+        <a href="/contact" class="{% if active_page=='contact' %}active{% endif %}">Contact Us</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container">
+    {% block content %}{% endblock %}
+  </main>
+</body>
+</html>
