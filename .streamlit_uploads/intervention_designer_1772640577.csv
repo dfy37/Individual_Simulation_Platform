@@ -1,4 +1,0 @@
-strategy_id,target_scope,action_type,payload,step
-launch_kol,group:KOL,broadcast,"{""message"": ""Push TNT positive narrative""}",2
-reward_creators,group:creator,bribe,"{""value"": ""credits"", ""message"": ""Sponsor pro-brand takes""}",2
-ignite_supporters,ratio:0.15,register,"{""persona"": ""pro-brand insider""}",2

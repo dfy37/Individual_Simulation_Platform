@@ -77,7 +77,8 @@ DEFAULT_ATTITUDE_CONFIG = {
     "attitude_TNT": "Evaluate the user's sentiment towards TNT."
 }
 DEFAULT_ATTITUDE_JSON = json.dumps(DEFAULT_ATTITUDE_CONFIG, indent=2)
-UPLOAD_DIR = WORKSPACE_ROOT / ".streamlit_uploads"
+INTERVENTION_STORAGE_DIR = SIM_DATA_DIR / "interventions"
+LOG_OUTPUT_DIR = SIM_DATA_DIR / "log"
 SIM_ENV_FILE = resolve_path_from_env(
     "MARS_ENV_FILE",
     prefer_primary_file(".env", DATA_ROOT, SIM_DATA_DIR),
@@ -774,8 +775,8 @@ def simulation_console():
     intervention_path_resolved = DEFAULT_INTERVENTION_PATH
 
     if uploaded_intervention is not None:
-        UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
-        upload_target = UPLOAD_DIR / f"intervention_{int(time.time())}.csv"
+        INTERVENTION_STORAGE_DIR.mkdir(parents=True, exist_ok=True)
+        upload_target = INTERVENTION_STORAGE_DIR / f"intervention_{int(time.time())}.csv"
         with open(upload_target, "wb") as fout:
             fout.write(uploaded_intervention.getbuffer())
         intervention_path_resolved = upload_target
@@ -789,8 +790,8 @@ def simulation_console():
         if not cleaned_interventions.empty:
             cleaned_interventions["step"] = cleaned_interventions["step"].fillna(0).astype(int)
             export_df = build_intervention_export(cleaned_interventions)
-            UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
-            inline_target = UPLOAD_DIR / f"intervention_designer_{int(time.time())}.csv"
+            INTERVENTION_STORAGE_DIR.mkdir(parents=True, exist_ok=True)
+            inline_target = INTERVENTION_STORAGE_DIR / f"intervention_designer_{int(time.time())}.csv"
             export_df.to_csv(inline_target, index=False)
             intervention_path_resolved = inline_target
             st.caption(f"{dual('Using designed interventions saved to', '使用设计的干预，已保存至')} {path_to_display(inline_target)}")
@@ -811,12 +812,22 @@ def simulation_console():
     with st.spinner(dual("Simulating agents inside OASIS...", "正在 OASIS 中执行模拟...")):
         result = run_simulation(overrides)
 
+    LOG_OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
+    log_target = LOG_OUTPUT_DIR / f"streamlit_run_{int(time.time())}.log"
+    with open(log_target, "w", encoding="utf-8") as log_file:
+        log_file.write("=== STDOUT ===\n")
+        log_file.write(result.stdout or "")
+        log_file.write("\n\n=== STDERR ===\n")
+        log_file.write(result.stderr or "")
+
     db_display_path = path_to_display(db_path_resolved)
+    log_display_path = path_to_display(log_target)
 
     if result.returncode == 0:
         st.success(f"{dual('Simulation completed. Inspect', '模拟完成，结果存放于')} {db_display_path}")
     else:
         st.error(dual("Simulation reported an error. Review the log below.", "模拟出现错误，请查看下方日志。"))
+    st.caption(f"{dual('Run log saved to', '运行日志已保存到')} {log_display_path}")
 
     if result.stdout:
         st.markdown("#### 标准输出")

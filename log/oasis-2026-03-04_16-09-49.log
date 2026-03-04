@@ -1,3 +1,0 @@
-2026-03-04 16:09:55,435 - oasis.env - INFO - update rec table.
-2026-03-04 16:09:59,889 - oasis.env - INFO - performed all actions.
-2026-03-04 16:09:59,889 - oasis.env - INFO - Simulation finished! Please check the results in the database: /remote-home/JuelinW/oasis_project/Individual_Simulation_Platform/marketing_simulation/data/oasis_database.db. Note that the trace table stored all the actions of the agents.
