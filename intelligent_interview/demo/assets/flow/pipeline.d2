@@ -1,0 +1,177 @@
+direction: right
+
+# =========================
+# Left: Human + UI
+# =========================
+
+Human: Human Interviewee {
+  shape: person
+  style.fill: "#FFF7ED"
+  style.stroke: "#FB923C"
+  style.stroke-width: 2
+  style.font-size: 16
+}
+
+UI: Streamlit Web App {
+  style.fill: "#ECFEFF"
+  style.stroke: "#06B6D4"
+  style.stroke-width: 2
+  style.font-size: 16
+}
+
+UI.note: "chat_input()\nmessage_index++\nshow: stage/event/follow-up\nfinish: report + feedback" {
+  style.fill: "#FFFFFF"
+  style.stroke: "#A5F3FC"
+  style.stroke-width: 1
+  style.font-size: 12
+}
+
+# =========================
+# Middle: Interview Engine (compact)
+# =========================
+
+Engine: Interview Engine (Backend.step) {
+  style.fill: "#EFF6FF"
+  style.stroke: "#60A5FA"
+  style.stroke-width: 2
+  style.font-size: 16
+
+  Planner: StagePlanner
+  Action: Action Selector
+  Policy: Policy/Schema Guard
+}
+
+Planner.style.fill: "#FFFFFF"
+Planner.style.stroke: "#93C5FD"
+Planner.style.stroke-width: 1
+Planner.style.font-size: 14
+
+Action.style.fill: "#FFFFFF"
+Action.style.stroke: "#93C5FD"
+Action.style.stroke-width: 1
+Action.style.font-size: 14
+
+Policy.style.fill: "#FFFFFF"
+Policy.style.stroke: "#93C5FD"
+Policy.style.stroke-width: 1
+Policy.style.font-size: 14
+
+# =========================
+# Right: Mandatory Follow-up Gate (BIG)
+# =========================
+
+Gate: Mandatory Follow-up Gate (必经) {
+  style.fill: "#FDF4FF"
+  style.stroke: "#D946EF"
+  style.stroke-width: 3
+  style.font-size: 17
+
+  Cand: Candidates
+  Util: Utility Scoring
+  Decide: Explainable Decision
+  Realize: LLM Realizer (表达层)
+}
+
+Cand.style.fill: "#FFFFFF"
+Cand.style.stroke: "#F0ABFC"
+Cand.style.stroke-width: 1
+Cand.style.font-size: 14
+
+Cand.note: "A) recover deferred_ids\nB) probe answer (1–3)\nC) clarify/consistency" {
+  style.fill: "#FFFFFF"
+  style.stroke: "#FBCFE8"
+  style.stroke-width: 1
+  style.font-size: 12
+}
+
+Util.style.fill: "#FFFFFF"
+Util.style.stroke: "#F0ABFC"
+Util.style.stroke-width: 1
+Util.style.font-size: 14
+
+Util.note: "U(c)=a·coverage + b·discovery + d·recovery\n     − g·cost − l·risk" {
+  style.fill: "#FFFFFF"
+  style.stroke: "#FBCFE8"
+  style.stroke-width: 1
+  style.font-size: 12
+}
+
+Decide.style.fill: "#FFFFFF"
+Decide.style.stroke: "#F0ABFC"
+Decide.style.stroke-width: 1
+Decide.style.font-size: 14
+
+Decide.note: "followup_decision (JSON)\n- do_followup / type / source\n- selected_qid/span\n- utility_breakdown\n- reason (可解释)" {
+  style.fill: "#FFFFFF"
+  style.stroke: "#FBCFE8"
+  style.stroke-width: 1
+  style.font-size: 12
+}
+
+Realize.style.fill: "#FFFFFF"
+Realize.style.stroke: "#F0ABFC"
+Realize.style.stroke-width: 1
+Realize.style.font-size: 14
+
+Realize.note: "LLM only: how to say\n禁止: 自行改策略\n输入: followup_type + constraints" {
+  style.fill: "#FFFFFF"
+  style.stroke: "#FBCFE8"
+  style.stroke-width: 1
+  style.font-size: 12
+}
+
+# =========================
+# Bottom: Storage & Metrics (compact)
+# =========================
+
+Data: DB + Metrics {
+  style.fill: "#F0FDF4"
+  style.stroke: "#22C55E"
+  style.stroke-width: 2
+  style.font-size: 16
+
+  DB: DB / Logs
+  Report: Report + Feedback
+}
+
+DB.style.fill: "#FFFFFF"
+DB.style.stroke: "#86EFAC"
+DB.style.stroke-width: 1
+DB.style.font-size: 14
+
+DB.note: "per message:\nturn_index\nrole/content\nstage/event\npolicy/action\nfollowup_decision" {
+  style.fill: "#FFFFFF"
+  style.stroke: "#BBF7D0"
+  style.stroke-width: 1
+  style.font-size: 12
+}
+
+Report.style.fill: "#FFFFFF"
+Report.style.stroke: "#86EFAC"
+Report.style.stroke-width: 1
+Report.style.font-size: 14
+
+Report.note: "metrics:\ncoverage / efficiency\nfollow-up yield\ndeferred recovery\nextractability proxy" {
+  style.fill: "#FFFFFF"
+  style.stroke: "#BBF7D0"
+  style.stroke-width: 1
+  style.font-size: 12
+}
+
+# =========================
+# Minimal arrows (less lines)
+# =========================
+
+Human -> UI: "answer"
+UI -> Engine: "history summary\n(+ answered/skipped/deferred)"
+Engine -> UI: "main question"
+
+# Mandatory gate is always after each user answer
+UI -> Gate: "after each answer"
+Gate -> UI: "optional follow-up\n(or explicit none)"
+
+# Logging
+UI -> Data.DB: "append messages"
+Engine.Policy -> Data.DB: "state/action/policy"
+Gate.Decide -> Data.DB: "followup_decision"
+Data.DB -> Data.Report: "aggregate"

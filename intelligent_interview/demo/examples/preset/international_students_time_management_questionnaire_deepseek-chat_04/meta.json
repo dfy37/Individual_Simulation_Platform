@@ -1,0 +1,8 @@
+{
+  "dataset_name": "international_students",
+  "respondent_id": "1",
+  "survey_name": "International Students Time Management Questionnaire",
+  "seed": 20240202,
+  "scenario_profile": "clean",
+  "source_mode": "prepared_source_bundle"
+}

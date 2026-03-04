@@ -1,0 +1,147 @@
+{
+  "examples": [
+    {
+      "id": "international_students_international_students_time_management_questionnaire_001_clean",
+      "display_name": "International Students Time Management Questionnaire",
+      "topic": "International Students Time Management Questionnaire",
+      "dir": "international_students_international_students_time_management_questionnaire_001_clean",
+      "default": true,
+      "benchmark_dir": "examples/preset/international_students_international_students_time_management_questionnaire_001_clean",
+      "source_type": "questionnaire_json",
+      "questionnaire_path": "examples/preset/international_students_international_students_time_management_questionnaire_001_clean/questionnaire.json",
+      "questionnaire_only_path": "examples/preset/international_students_international_students_time_management_questionnaire_001_clean/questionnaire_only.json"
+    },
+    {
+      "id": "international_students_international_students_time_management_questionnaire_002_clean",
+      "display_name": "International Students Time Management Questionnaire",
+      "topic": "International Students Time Management Questionnaire",
+      "dir": "international_students_international_students_time_management_questionnaire_002_clean",
+      "default": false,
+      "benchmark_dir": "examples/preset/international_students_international_students_time_management_questionnaire_002_clean",
+      "source_type": "questionnaire_json",
+      "questionnaire_path": "examples/preset/international_students_international_students_time_management_questionnaire_002_clean/questionnaire.json",
+      "questionnaire_only_path": "examples/preset/international_students_international_students_time_management_questionnaire_002_clean/questionnaire_only.json"
+    },
+    {
+      "id": "stress-dataset_survey_c781e9b3_001_clean",
+      "display_name": "学生压力状况调研问卷大纲",
+      "topic": "学生压力状况调研问卷大纲",
+      "dir": "stress-dataset_survey_c781e9b3_001_clean",
+      "default": false,
+      "benchmark_dir": "examples/preset/stress-dataset_survey_c781e9b3_001_clean",
+      "source_type": "questionnaire_json",
+      "questionnaire_path": "examples/preset/stress-dataset_survey_c781e9b3_001_clean/questionnaire.json",
+      "questionnaire_only_path": "examples/preset/stress-dataset_survey_c781e9b3_001_clean/questionnaire_only.json"
+    },
+    {
+      "id": "stress-dataset_survey_c781e9b3_002_clean",
+      "display_name": "学生压力状况调研问卷大纲",
+      "topic": "学生压力状况调研问卷大纲",
+      "dir": "stress-dataset_survey_c781e9b3_002_clean",
+      "default": false,
+      "benchmark_dir": "examples/preset/stress-dataset_survey_c781e9b3_002_clean",
+      "source_type": "questionnaire_json",
+      "questionnaire_path": "examples/preset/stress-dataset_survey_c781e9b3_002_clean/questionnaire.json",
+      "questionnaire_only_path": "examples/preset/stress-dataset_survey_c781e9b3_002_clean/questionnaire_only.json"
+    },
+    {
+      "id": "writers_interview-131_survey_13c8f951_001_clean",
+      "display_name": "密歇根大学学生写作能力与写作经历调研",
+      "topic": "密歇根大学学生写作能力与写作经历调研",
+      "dir": "writers_interview-131_survey_13c8f951_001_clean",
+      "default": false,
+      "benchmark_dir": "examples/preset/writers_interview-131_survey_13c8f951_001_clean",
+      "source_type": "questionnaire_json",
+      "questionnaire_path": "examples/preset/writers_interview-131_survey_13c8f951_001_clean/questionnaire.json",
+      "questionnaire_only_path": "examples/preset/writers_interview-131_survey_13c8f951_001_clean/questionnaire_only.json"
+    },
+    {
+      "id": "writers_interview-131_survey_13c8f951_002_clean",
+      "display_name": "密歇根大学学生写作能力与写作经历调研",
+      "topic": "密歇根大学学生写作能力与写作经历调研",
+      "dir": "writers_interview-131_survey_13c8f951_002_clean",
+      "default": false,
+      "benchmark_dir": "examples/preset/writers_interview-131_survey_13c8f951_002_clean",
+      "source_type": "questionnaire_json",
+      "questionnaire_path": "examples/preset/writers_interview-131_survey_13c8f951_002_clean/questionnaire.json",
+      "questionnaire_only_path": "examples/preset/writers_interview-131_survey_13c8f951_002_clean/questionnaire_only.json"
+    },
+    {
+      "id": "云南社区调查_survey_82bf107a_002_clean",
+      "display_name": "云南省多县社区家庭综合情况调查问卷",
+      "topic": "云南省多县社区家庭综合情况调查问卷",
+      "dir": "云南社区调查_survey_82bf107a_002_clean",
+      "default": false,
+      "benchmark_dir": "examples/preset/云南社区调查_survey_82bf107a_002_clean",
+      "source_type": "questionnaire_json",
+      "questionnaire_path": "examples/preset/云南社区调查_survey_82bf107a_002_clean/questionnaire.json",
+      "questionnaire_only_path": "examples/preset/云南社区调查_survey_82bf107a_002_clean/questionnaire_only.json"
+    },
+    {
+      "id": "学生就业调查_survey_4054b4ba_001_clean",
+      "display_name": "大学生毕业就业选择调研问卷大纲",
+      "topic": "大学生毕业就业选择调研问卷大纲",
+      "dir": "学生就业调查_survey_4054b4ba_001_clean",
+      "default": false,
+      "benchmark_dir": "examples/preset/学生就业调查_survey_4054b4ba_001_clean",
+      "source_type": "questionnaire_json",
+      "questionnaire_path": "examples/preset/学生就业调查_survey_4054b4ba_001_clean/questionnaire.json",
+      "questionnaire_only_path": "examples/preset/学生就业调查_survey_4054b4ba_001_clean/questionnaire_only.json"
+    },
+    {
+      "id": "学生就业调查_survey_4054b4ba_002_clean",
+      "display_name": "大学生毕业就业选择调研问卷大纲",
+      "topic": "大学生毕业就业选择调研问卷大纲",
+      "dir": "学生就业调查_survey_4054b4ba_002_clean",
+      "default": false,
+      "benchmark_dir": "examples/preset/学生就业调查_survey_4054b4ba_002_clean",
+      "source_type": "questionnaire_json",
+      "questionnaire_path": "examples/preset/学生就业调查_survey_4054b4ba_002_clean/questionnaire.json",
+      "questionnaire_only_path": "examples/preset/学生就业调查_survey_4054b4ba_002_clean/questionnaire_only.json"
+    },
+    {
+      "id": "定性数据开放认知访谈-14_survey_0bf697f6_001_clean",
+      "display_name": "定性数据开放获取态度与实践访谈大纲",
+      "topic": "定性数据开放获取态度与实践访谈大纲",
+      "dir": "定性数据开放认知访谈-14_survey_0bf697f6_001_clean",
+      "default": false,
+      "benchmark_dir": "examples/preset/定性数据开放认知访谈-14_survey_0bf697f6_001_clean",
+      "source_type": "questionnaire_json",
+      "questionnaire_path": "examples/preset/定性数据开放认知访谈-14_survey_0bf697f6_001_clean/questionnaire.json",
+      "questionnaire_only_path": "examples/preset/定性数据开放认知访谈-14_survey_0bf697f6_001_clean/questionnaire_only.json"
+    },
+    {
+      "id": "定性数据开放认知访谈-14_survey_0bf697f6_002_clean",
+      "display_name": "定性数据开放获取态度与实践访谈大纲",
+      "topic": "定性数据开放获取态度与实践访谈大纲",
+      "dir": "定性数据开放认知访谈-14_survey_0bf697f6_002_clean",
+      "default": false,
+      "benchmark_dir": "examples/preset/定性数据开放认知访谈-14_survey_0bf697f6_002_clean",
+      "source_type": "questionnaire_json",
+      "questionnaire_path": "examples/preset/定性数据开放认知访谈-14_survey_0bf697f6_002_clean/questionnaire.json",
+      "questionnaire_only_path": "examples/preset/定性数据开放认知访谈-14_survey_0bf697f6_002_clean/questionnaire_only.json"
+    },
+    {
+      "id": "开放教育访谈-10_survey_2f53d515_001_clean",
+      "display_name": "开放教育实践访谈大纲",
+      "topic": "开放教育实践访谈大纲",
+      "dir": "开放教育访谈-10_survey_2f53d515_001_clean",
+      "default": false,
+      "benchmark_dir": "examples/preset/开放教育访谈-10_survey_2f53d515_001_clean",
+      "source_type": "questionnaire_json",
+      "questionnaire_path": "examples/preset/开放教育访谈-10_survey_2f53d515_001_clean/questionnaire.json",
+      "questionnaire_only_path": "examples/preset/开放教育访谈-10_survey_2f53d515_001_clean/questionnaire_only.json"
+    },
+    {
+      "id": "开放教育访谈-10_survey_2f53d515_002_clean",
+      "display_name": "开放教育实践访谈大纲",
+      "topic": "开放教育实践访谈大纲",
+      "dir": "开放教育访谈-10_survey_2f53d515_002_clean",
+      "default": false,
+      "benchmark_dir": "examples/preset/开放教育访谈-10_survey_2f53d515_002_clean",
+      "source_type": "questionnaire_json",
+      "questionnaire_path": "examples/preset/开放教育访谈-10_survey_2f53d515_002_clean/questionnaire.json",
+      "questionnaire_only_path": "examples/preset/开放教育访谈-10_survey_2f53d515_002_clean/questionnaire_only.json"
+    }
+  ]
+}

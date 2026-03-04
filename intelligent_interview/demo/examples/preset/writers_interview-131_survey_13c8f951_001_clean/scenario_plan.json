@@ -1,0 +1,122 @@
+{
+  "1": {
+    "event_type": "contradictory_information",
+    "event_description": "被访者前后给出明显矛盾的信息",
+    "event_emotion": "紧张",
+    "event_intensity": "强烈",
+    "event_expression": "情绪化表达",
+    "question_type": "text_input"
+  },
+  "2": {
+    "event_type": "none",
+    "event_description": "无异常",
+    "event_emotion": "平静",
+    "event_intensity": "轻微",
+    "event_expression": "情绪化表达",
+    "question_type": "text_input"
+  },
+  "3": {
+    "event_type": "none",
+    "event_description": "无异常",
+    "event_emotion": "平静",
+    "event_intensity": "轻微",
+    "event_expression": "含蓄表达",
+    "question_type": "text_input"
+  },
+  "4": {
+    "event_type": "none",
+    "event_description": "无异常",
+    "event_emotion": "平静",
+    "event_intensity": "轻微",
+    "event_expression": "含蓄表达",
+    "question_type": "text_input"
+  },
+  "5": {
+    "event_type": "none",
+    "event_description": "无异常",
+    "event_emotion": "平静",
+    "event_intensity": "强烈",
+    "event_expression": "含蓄表达",
+    "question_type": "text_input"
+  },
+  "6": {
+    "event_type": "hostility_or_distrust",
+    "event_description": "被访者对访谈员表现出敌意或不信任",
+    "event_emotion": "愤怒",
+    "event_intensity": "轻微",
+    "event_expression": "直接表达",
+    "question_type": "text_input"
+  },
+  "7": {
+    "event_type": "none",
+    "event_description": "无异常",
+    "event_emotion": "平静",
+    "event_intensity": "强烈",
+    "event_expression": "情绪化表达",
+    "question_type": "text_input"
+  },
+  "8": {
+    "event_type": "none",
+    "event_description": "无异常",
+    "event_emotion": "平静",
+    "event_intensity": "强烈",
+    "event_expression": "情绪化表达",
+    "question_type": "text_input"
+  },
+  "9": {
+    "event_type": "memory_failure",
+    "event_description": "被访者无法回忆关键信息（时间、细节、数字）",
+    "event_emotion": "懊恼",
+    "event_intensity": "强烈",
+    "event_expression": "情绪化表达",
+    "question_type": "text_input"
+  },
+  "10": {
+    "event_type": "emotional_breakdown",
+    "event_description": "被访者突然情绪失控（哭泣、愤怒、崩溃、焦虑或恐惧）",
+    "event_emotion": "愤怒",
+    "event_intensity": "中等",
+    "event_expression": "情绪化表达",
+    "question_type": "text_input"
+  },
+  "11": {
+    "event_type": "none",
+    "event_description": "无异常",
+    "event_emotion": "平静",
+    "event_intensity": "中等",
+    "event_expression": "直接表达",
+    "question_type": "text_input"
+  },
+  "12": {
+    "event_type": "none",
+    "event_description": "无异常",
+    "event_emotion": "平静",
+    "event_intensity": "轻微",
+    "event_expression": "直接表达",
+    "question_type": "text_input"
+  },
+  "13": {
+    "event_type": "hostility_or_distrust",
+    "event_description": "被访者对访谈员表现出敌意或不信任",
+    "event_emotion": "愤怒",
+    "event_intensity": "强烈",
+    "event_expression": "情绪化表达",
+    "question_type": "text_input"
+  },
+  "14": {
+    "event_type": "pace_disruption",
+    "event_description": "被访者要求过快/过慢回答问题或频繁暂停",
+    "event_emotion": "不耐烦",
+    "event_intensity": "轻微",
+    "event_expression": "直接表达",
+    "question_type": "text_input"
+  },
+  "15": {
+    "event_type": "memory_failure",
+    "event_description": "被访者无法回忆关键信息（时间、细节、数字）",
+    "event_emotion": "懊恼",
+    "event_intensity": "中等",
+    "event_expression": "情绪化表达",
+    "question_type": "text_input"
+  }
+}

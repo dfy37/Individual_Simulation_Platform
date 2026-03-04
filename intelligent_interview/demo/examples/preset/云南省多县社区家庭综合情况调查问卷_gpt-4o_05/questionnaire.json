@@ -1,0 +1,136 @@
+{
+  "survey_name": "云南省多县社区家庭综合情况调查问卷",
+  "questions": [
+    {
+      "id": 1,
+      "question": "请选择您所在的省份",
+      "type": "single_choice",
+      "options": [
+        "云南省"
+      ]
+    },
+    {
+      "id": 2,
+      "question": "请填写您所在的县",
+      "type": "text_input",
+      "placeholder": "例如：德钦县、兰坪县、维西县"
+    },
+    {
+      "id": 3,
+      "question": "请填写您所在的乡",
+      "type": "text_input",
+      "placeholder": "例如：佛山乡、羊拉乡、兔峨乡、塔城乡"
+    },
+    {
+      "id": 4,
+      "question": "请填写您所在的村",
+      "type": "text_input",
+      "placeholder": "例如：巴美村、茂顶村、大村头村、柯那村"
+    },
+    {
+      "id": 5,
+      "question": "请填写您所在的村民小组",
+      "type": "text_input",
+      "placeholder": "例如：巴堆组、羊鼻子、史塔底、呀塘"
+    },
+    {
+      "id": 6,
+      "question": "请填写您家庭所在地的经度",
+      "type": "text_input",
+      "placeholder": "例如：98.662841"
+    },
+    {
+      "id": 7,
+      "question": "请填写您家庭所在地的纬度",
+      "type": "text_input",
+      "placeholder": "例如：28.832075"
+    },
+    {
+      "id": 8,
+      "question": "您的家庭人口数是多少人",
+      "type": "single_choice",
+      "options": [
+        "1人",
+        "2人",
+        "3人",
+        "4人",
+        "5人",
+        "6人",
+        "7人",
+        "8人及以上"
+      ]
+    },
+    {
+      "id": 9,
+      "question": "您家庭的年度总收入是多少元",
+      "type": "text_input",
+      "placeholder": "请填写具体金额"
+    },
+    {
+      "id": 10,
+      "question": "您家庭的人均年度收入是多少元",
+      "type": "text_input",
+      "placeholder": "请填写具体金额"
+    },
+    {
+      "id": 11,
+      "question": "您家庭第二、第三产业生产经营性收入是多少元",
+      "type": "text_input",
+      "placeholder": "无则填写0"
+    },
+    {
+      "id": 12,
+      "question": "您家庭有多少人外出务工",
+      "type": "single_choice",
+      "options": [
+        "0人",
+        "1人",
+        "2人",
+        "3人",
+        "4人及以上"
+      ]
+    },
+    {
+      "id": 13,
+      "question": "外出务工年度总收入是多少元",
+      "type": "text_input",
+      "placeholder": "无则填写0"
+    },
+    {
+      "id": 14,
+      "question": "您家庭年度种植业收入是多少元",
+      "type": "text_input",
+      "placeholder": "无则填写0"
+    },
+    {
+      "id": 15,
+      "question": "您家庭年度畜牧业收入是多少元",
+      "type": "text_input",
+      "placeholder": "无则填写0"
+    },
+    {
+      "id": 16,
+      "question": "您家庭年度采集收入是多少元",
+      "type": "text_input",
+      "placeholder": "无则填写0"
+    },
+    {
+      "id": 17,
+      "question": "您家庭第一产业（种植+畜牧+采集）年度总收入是多少元",
+      "type": "text_input",
+      "placeholder": "请填写合计金额"
+    },
+    {
+      "id": 18,
+      "question": "您家庭年度补助性收入是多少元",
+      "type": "text_input",
+      "placeholder": "无则填写0"
+    },
+    {
+      "id": 19,
+      "question": "您家庭年度其他收入是多少元",
+      "type": "text_input",
+      "placeholder": "无则填写0"
+    }
+  ]
+}

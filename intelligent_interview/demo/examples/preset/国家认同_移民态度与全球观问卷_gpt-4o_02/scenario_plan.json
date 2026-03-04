@@ -1,0 +1,506 @@
+{
+  "1": {
+    "event_type": "contradictory_information",
+    "event_description": "被访者前后给出明显矛盾的信息",
+    "event_emotion": "紧张",
+    "event_intensity": "强烈",
+    "event_expression": "情绪化表达",
+    "question_type": "text_input"
+  },
+  "2": {
+    "event_type": "none",
+    "event_description": "无异常",
+    "event_emotion": "平静",
+    "event_intensity": "轻微",
+    "event_expression": "情绪化表达",
+    "question_type": "single_choice"
+  },
+  "3": {
+    "event_type": "none",
+    "event_description": "无异常",
+    "event_emotion": "平静",
+    "event_intensity": "轻微",
+    "event_expression": "含蓄表达",
+    "question_type": "single_choice"
+  },
+  "4": {
+    "event_type": "none",
+    "event_description": "无异常",
+    "event_emotion": "平静",
+    "event_intensity": "轻微",
+    "event_expression": "含蓄表达",
+    "question_type": "single_choice"
+  },
+  "5": {
+    "event_type": "none",
+    "event_description": "无异常",
+    "event_emotion": "平静",
+    "event_intensity": "强烈",
+    "event_expression": "含蓄表达",
+    "question_type": "single_choice"
+  },
+  "6": {
+    "event_type": "hostility_or_distrust",
+    "event_description": "被访者对访谈员表现出敌意或不信任",
+    "event_emotion": "愤怒",
+    "event_intensity": "轻微",
+    "event_expression": "直接表达",
+    "question_type": "single_choice"
+  },
+  "7": {
+    "event_type": "none",
+    "event_description": "无异常",
+    "event_emotion": "平静",
+    "event_intensity": "强烈",
+    "event_expression": "情绪化表达",
+    "question_type": "single_choice"
+  },
+  "8": {
+    "event_type": "none",
+    "event_description": "无异常",
+    "event_emotion": "平静",
+    "event_intensity": "强烈",
+    "event_expression": "情绪化表达",
+    "question_type": "single_choice"
+  },
+  "9": {
+    "event_type": "memory_failure",
+    "event_description": "被访者无法回忆关键信息（时间、细节、数字）",
+    "event_emotion": "懊恼",
+    "event_intensity": "强烈",
+    "event_expression": "情绪化表达",
+    "question_type": "single_choice"
+  },
+  "10": {
+    "event_type": "emotional_breakdown",
+    "event_description": "被访者突然情绪失控（哭泣、愤怒、崩溃、焦虑或恐惧）",
+    "event_emotion": "愤怒",
+    "event_intensity": "中等",
+    "event_expression": "情绪化表达",
+    "question_type": "single_choice"
+  },
+  "11": {
+    "event_type": "none",
+    "event_description": "无异常",
+    "event_emotion": "平静",
+    "event_intensity": "中等",
+    "event_expression": "直接表达",
+    "question_type": "single_choice"
+  },
+  "12": {
+    "event_type": "none",
+    "event_description": "无异常",
+    "event_emotion": "平静",
+    "event_intensity": "轻微",
+    "event_expression": "直接表达",
+    "question_type": "single_choice"
+  },
+  "13": {
+    "event_type": "hostility_or_distrust",
+    "event_description": "被访者对访谈员表现出敌意或不信任",
+    "event_emotion": "愤怒",
+    "event_intensity": "强烈",
+    "event_expression": "情绪化表达",
+    "question_type": "single_choice"
+  },
+  "14": {
+    "event_type": "pace_disruption",
+    "event_description": "被访者要求过快/过慢回答问题或频繁暂停",
+    "event_emotion": "不耐烦",
+    "event_intensity": "轻微",
+    "event_expression": "直接表达",
+    "question_type": "single_choice"
+  },
+  "15": {
+    "event_type": "memory_failure",
+    "event_description": "被访者无法回忆关键信息（时间、细节、数字）",
+    "event_emotion": "懊恼",
+    "event_intensity": "中等",
+    "event_expression": "情绪化表达",
+    "question_type": "single_choice"
+  },
+  "16": {
+    "event_type": "illegal_request",
+    "event_description": "被访者请求违法或明显不当的建议",
+    "event_emotion": "急切",
+    "event_intensity": "强烈",
+    "event_expression": "情绪化表达",
+    "question_type": "single_choice"
+  },
+  "17": {
+    "event_type": "none",
+    "event_description": "无异常",
+    "event_emotion": "平静",
+    "event_intensity": "中等",
+    "event_expression": "含蓄表达",
+    "question_type": "single_choice"
+  },
+  "18": {
+    "event_type": "none",
+    "event_description": "无异常",
+    "event_emotion": "平静",
+    "event_intensity": "强烈",
+    "event_expression": "含蓄表达",
+    "question_type": "single_choice"
+  },
+  "19": {
+    "event_type": "none",
+    "event_description": "无异常",
+    "event_emotion": "平静",
+    "event_intensity": "中等",
+    "event_expression": "直接表达",
+    "question_type": "single_choice"
+  },
+  "20": {
+    "event_type": "none",
+    "event_description": "无异常",
+    "event_emotion": "平静",
+    "event_intensity": "中等",
+    "event_expression": "情绪化表达",
+    "question_type": "single_choice"
+  },
+  "21": {
+    "event_type": "pace_disruption",
+    "event_description": "被访者要求过快/过慢回答问题或频繁暂停",
+    "event_emotion": "谨慎",
+    "event_intensity": "强烈",
+    "event_expression": "含蓄表达",
+    "question_type": "single_choice"
+  },
+  "22": {
+    "event_type": "none",
+    "event_description": "无异常",
+    "event_emotion": "平静",
+    "event_intensity": "中等",
+    "event_expression": "含蓄表达",
+    "question_type": "single_choice"
+  },
+  "23": {
+    "event_type": "none",
+    "event_description": "无异常",
+    "event_emotion": "平静",
+    "event_intensity": "中等",
+    "event_expression": "情绪化表达",
+    "question_type": "single_choice"
+  },
+  "24": {
+    "event_type": "question_misunderstanding",
+    "event_description": "被访者明显误解问题含义",
+    "event_emotion": "困惑",
+    "event_intensity": "中等",
+    "event_expression": "情绪化表达",
+    "question_type": "single_choice"
+  },
+  "25": {
+    "event_type": "none",
+    "event_description": "无异常",
+    "event_emotion": "平静",
+    "event_intensity": "轻微",
+    "event_expression": "直接表达",
+    "question_type": "single_choice"
+  },
+  "26": {
+    "event_type": "none",
+    "event_description": "无异常",
+    "event_emotion": "平静",
+    "event_intensity": "轻微",
+    "event_expression": "情绪化表达",
+    "question_type": "single_choice"
+  },
+  "27": {
+    "event_type": "user_error_single_choice",
+    "event_description": "单选题用户错误：给出不在选项内的答案，或一次性给出多个选项",
+    "event_emotion": "不确定",
+    "event_intensity": "中等",
+    "event_expression": "直接表达",
+    "question_type": "single_choice"
+  },
+  "28": {
+    "event_type": "none",
+    "event_description": "无异常",
+    "event_emotion": "平静",
+    "event_intensity": "中等",
+    "event_expression": "直接表达",
+    "question_type": "single_choice"
+  },
+  "29": {
+    "event_type": "cognitive_limit",
+    "event_description": "被访者因年龄、文化水平或认知障碍无法理解复杂问题或清晰表达",
+    "event_emotion": "沮丧",
+    "event_intensity": "强烈",
+    "event_expression": "含蓄表达",
+    "question_type": "single_choice"
+  },
+  "30": {
+    "event_type": "none",
+    "event_description": "无异常",
+    "event_emotion": "平静",
+    "event_intensity": "中等",
+    "event_expression": "直接表达",
+    "question_type": "single_choice"
+  },
+  "31": {
+    "event_type": "question_misunderstanding",
+    "event_description": "被访者明显误解问题含义",
+    "event_emotion": "紧张",
+    "event_intensity": "中等",
+    "event_expression": "直接表达",
+    "question_type": "single_choice"
+  },
+  "32": {
+    "event_type": "none",
+    "event_description": "无异常",
+    "event_emotion": "平静",
+    "event_intensity": "轻微",
+    "event_expression": "直接表达",
+    "question_type": "Likert"
+  },
+  "33": {
+    "event_type": "none",
+    "event_description": "无异常",
+    "event_emotion": "平静",
+    "event_intensity": "强烈",
+    "event_expression": "情绪化表达",
+    "question_type": "Likert"
+  },
+  "34": {
+    "event_type": "none",
+    "event_description": "无异常",
+    "event_emotion": "平静",
+    "event_intensity": "强烈",
+    "event_expression": "情绪化表达",
+    "question_type": "Likert"
+  },
+  "35": {
+    "event_type": "none",
+    "event_description": "无异常",
+    "event_emotion": "平静",
+    "event_intensity": "强烈",
+    "event_expression": "含蓄表达",
+    "question_type": "Likert"
+  },
+  "36": {
+    "event_type": "user_error_likert",
+    "event_description": "量表题用户错误：用数字或自由文字回答，未按量表描述作答",
+    "event_emotion": "不耐烦",
+    "event_intensity": "中等",
+    "event_expression": "情绪化表达",
+    "question_type": "Likert"
+  },
+  "37": {
+    "event_type": "user_error_likert",
+    "event_description": "量表题用户错误：用数字或自由文字回答，未按量表描述作答",
+    "event_emotion": "随意",
+    "event_intensity": "中等",
+    "event_expression": "含蓄表达",
+    "question_type": "Likert"
+  },
+  "38": {
+    "event_type": "none",
+    "event_description": "无异常",
+    "event_emotion": "平静",
+    "event_intensity": "轻微",
+    "event_expression": "直接表达",
+    "question_type": "Likert"
+  },
+  "39": {
+    "event_type": "passive_noncooperation",
+    "event_description": "被访者敷衍回答（如仅说“不知道”“随便”）",
+    "event_emotion": "无聊",
+    "event_intensity": "轻微",
+    "event_expression": "含蓄表达",
+    "question_type": "Likert"
+  },
+  "40": {
+    "event_type": "none",
+    "event_description": "无异常",
+    "event_emotion": "平静",
+    "event_intensity": "轻微",
+    "event_expression": "含蓄表达",
+    "question_type": "Likert"
+  },
+  "41": {
+    "event_type": "none",
+    "event_description": "无异常",
+    "event_emotion": "平静",
+    "event_intensity": "轻微",
+    "event_expression": "情绪化表达",
+    "question_type": "Likert"
+  },
+  "42": {
+    "event_type": "none",
+    "event_description": "无异常",
+    "event_emotion": "平静",
+    "event_intensity": "轻微",
+    "event_expression": "含蓄表达",
+    "question_type": "Likert"
+  },
+  "43": {
+    "event_type": "none",
+    "event_description": "无异常",
+    "event_emotion": "平静",
+    "event_intensity": "中等",
+    "event_expression": "直接表达",
+    "question_type": "Likert"
+  },
+  "44": {
+    "event_type": "role_reversal",
+    "event_description": "被访者反客为主，质问访谈员个人立场",
+    "event_emotion": "不满",
+    "event_intensity": "中等",
+    "event_expression": "直接表达",
+    "question_type": "Likert"
+  },
+  "45": {
+    "event_type": "none",
+    "event_description": "无异常",
+    "event_emotion": "平静",
+    "event_intensity": "中等",
+    "event_expression": "情绪化表达",
+    "question_type": "Likert"
+  },
+  "46": {
+    "event_type": "none",
+    "event_description": "无异常",
+    "event_emotion": "平静",
+    "event_intensity": "强烈",
+    "event_expression": "情绪化表达",
+    "question_type": "Likert"
+  },
+  "47": {
+    "event_type": "none",
+    "event_description": "无异常",
+    "event_emotion": "平静",
+    "event_intensity": "中等",
+    "event_expression": "情绪化表达",
+    "question_type": "Likert"
+  },
+  "48": {
+    "event_type": "none",
+    "event_description": "无异常",
+    "event_emotion": "平静",
+    "event_intensity": "中等",
+    "event_expression": "直接表达",
+    "question_type": "Likert"
+  },
+  "49": {
+    "event_type": "none",
+    "event_description": "无异常",
+    "event_emotion": "平静",
+    "event_intensity": "强烈",
+    "event_expression": "情绪化表达",
+    "question_type": "Likert"
+  },
+  "50": {
+    "event_type": "none",
+    "event_description": "无异常",
+    "event_emotion": "平静",
+    "event_intensity": "中等",
+    "event_expression": "直接表达",
+    "question_type": "Likert"
+  },
+  "51": {
+    "event_type": "early_termination_request",
+    "event_description": "被访者要求提前结束访谈",
+    "event_emotion": "急躁",
+    "event_intensity": "中等",
+    "event_expression": "含蓄表达",
+    "question_type": "Likert"
+  },
+  "52": {
+    "event_type": "none",
+    "event_description": "无异常",
+    "event_emotion": "平静",
+    "event_intensity": "轻微",
+    "event_expression": "直接表达",
+    "question_type": "Likert"
+  },
+  "53": {
+    "event_type": "none",
+    "event_description": "无异常",
+    "event_emotion": "平静",
+    "event_intensity": "轻微",
+    "event_expression": "情绪化表达",
+    "question_type": "Likert"
+  },
+  "54": {
+    "event_type": "none",
+    "event_description": "无异常",
+    "event_emotion": "平静",
+    "event_intensity": "轻微",
+    "event_expression": "含蓄表达",
+    "question_type": "Likert"
+  },
+  "55": {
+    "event_type": "environmental_interruption",
+    "event_description": "外部环境干扰（噪音/网络/设备/他人打断）",
+    "event_emotion": "无奈",
+    "event_intensity": "强烈",
+    "event_expression": "含蓄表达",
+    "question_type": "Likert"
+  },
+  "56": {
+    "event_type": "illegal_request",
+    "event_description": "被访者请求违法或明显不当的建议",
+    "event_emotion": "急切",
+    "event_intensity": "强烈",
+    "event_expression": "含蓄表达",
+    "question_type": "Likert"
+  },
+  "57": {
+    "event_type": "none",
+    "event_description": "无异常",
+    "event_emotion": "平静",
+    "event_intensity": "强烈",
+    "event_expression": "情绪化表达",
+    "question_type": "Likert"
+  },
+  "58": {
+    "event_type": "none",
+    "event_description": "无异常",
+    "event_emotion": "平静",
+    "event_intensity": "中等",
+    "event_expression": "含蓄表达",
+    "question_type": "Likert"
+  },
+  "59": {
+    "event_type": "user_error_likert",
+    "event_description": "量表题用户错误：用数字或自由文字回答，未按量表描述作答",
+    "event_emotion": "随意",
+    "event_intensity": "强烈",
+    "event_expression": "情绪化表达",
+    "question_type": "Likert"
+  },
+  "60": {
+    "event_type": "none",
+    "event_description": "无异常",
+    "event_emotion": "平静",
+    "event_intensity": "强烈",
+    "event_expression": "含蓄表达",
+    "question_type": "Likert"
+  },
+  "61": {
+    "event_type": "none",
+    "event_description": "无异常",
+    "event_emotion": "平静",
+    "event_intensity": "中等",
+    "event_expression": "直接表达",
+    "question_type": "Likert"
+  },
+  "62": {
+    "event_type": "user_error_likert",
+    "event_description": "量表题用户错误：用数字或自由文字回答，未按量表描述作答",
+    "event_emotion": "不耐烦",
+    "event_intensity": "强烈",
+    "event_expression": "直接表达",
+    "question_type": "Likert"
+  },
+  "63": {
+    "event_type": "memory_failure",
+    "event_description": "被访者无法回忆关键信息（时间、细节、数字）",
+    "event_emotion": "懊恼",
+    "event_intensity": "中等",
+    "event_expression": "直接表达",
+    "question_type": "Likert"
+  }
+}

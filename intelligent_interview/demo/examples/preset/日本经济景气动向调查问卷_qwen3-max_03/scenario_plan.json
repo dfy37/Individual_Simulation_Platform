@@ -1,0 +1,50 @@
+{
+  "1": {
+    "event_type": "contradictory_information",
+    "event_description": "被访者前后给出明显矛盾的信息",
+    "event_emotion": "紧张",
+    "event_intensity": "强烈",
+    "event_expression": "情绪化表达",
+    "question_type": "text_input"
+  },
+  "2": {
+    "event_type": "none",
+    "event_description": "无异常",
+    "event_emotion": "平静",
+    "event_intensity": "轻微",
+    "event_expression": "情绪化表达",
+    "question_type": "text_input"
+  },
+  "3": {
+    "event_type": "none",
+    "event_description": "无异常",
+    "event_emotion": "平静",
+    "event_intensity": "轻微",
+    "event_expression": "含蓄表达",
+    "question_type": "text_input"
+  },
+  "4": {
+    "event_type": "none",
+    "event_description": "无异常",
+    "event_emotion": "平静",
+    "event_intensity": "轻微",
+    "event_expression": "含蓄表达",
+    "question_type": "text_input"
+  },
+  "5": {
+    "event_type": "none",
+    "event_description": "无异常",
+    "event_emotion": "平静",
+    "event_intensity": "强烈",
+    "event_expression": "含蓄表达",
+    "question_type": "text_input"
+  },
+  "6": {
+    "event_type": "role_reversal",
+    "event_description": "被访者反客为主，质问访谈员个人立场",
+    "event_emotion": "不满",
+    "event_intensity": "轻微",
+    "event_expression": "直接表达",
+    "question_type": "text_area"
+  }
+}

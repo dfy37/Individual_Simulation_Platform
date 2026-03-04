@@ -1,0 +1,8 @@
+{
+  "dataset_name": "学生就业调查",
+  "respondent_id": "1",
+  "survey_name": "大学生毕业就业选择调研问卷大纲",
+  "seed": 20240202,
+  "scenario_profile": "clean",
+  "source_mode": "prepared_source_bundle"
+}

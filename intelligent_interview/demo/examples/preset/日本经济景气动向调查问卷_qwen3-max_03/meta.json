@@ -1,0 +1,8 @@
+{
+  "dataset_name": "经济调查",
+  "respondent_id": "1",
+  "survey_name": "日本经济景气动向调查问卷",
+  "seed": 20240202,
+  "scenario_profile": "clean",
+  "source_mode": "prepared_source_bundle"
+}

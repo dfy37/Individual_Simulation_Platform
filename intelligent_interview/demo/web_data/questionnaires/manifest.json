@@ -1,0 +1,16 @@
+{
+  "questionnaires": [
+    {
+      "id": "qualitative",
+      "direction": "定性开放获取态度与实践",
+      "path": "web_data/questionnaires/qualitative.questionnaire.json",
+      "default": true
+    },
+    {
+      "id": "time_management",
+      "direction": "国际学生时间管理",
+      "path": "web_data/questionnaires/time_management.questionnaire.json",
+      "default": false
+    }
+  ]
+}

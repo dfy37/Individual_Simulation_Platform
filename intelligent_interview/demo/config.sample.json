@@ -1,0 +1,9 @@
+{
+  "models": [
+    {
+      "name": "qwen3-max",
+      "api_key": "YOUR_QWEN3_API_KEY",
+      "base_url": "https://dashscope.aliyuncs.com/compatible-mode/v1"
+    }
+  ]
+}

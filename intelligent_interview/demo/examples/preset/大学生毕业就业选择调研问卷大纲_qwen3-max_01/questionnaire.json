@@ -1,0 +1,95 @@
+{
+  "survey_name": "大学生毕业就业选择调研问卷大纲",
+  "questions": [
+    {
+      "id": 1,
+      "question": "你的性别",
+      "type": "single_choice",
+      "options": [
+        "男",
+        "女"
+      ]
+    },
+    {
+      "id": 2,
+      "question": "你所学的专业",
+      "type": "text_input",
+      "placeholder": "例如：临床医学、金融学"
+    },
+    {
+      "id": 3,
+      "question": "你的学历层次",
+      "type": "single_choice",
+      "options": [
+        "本科",
+        "硕士",
+        "博士"
+      ]
+    },
+    {
+      "id": 4,
+      "question": "你的毕业去向",
+      "type": "single_choice",
+      "options": [
+        "创业",
+        "公务员",
+        "出国",
+        "自由职业",
+        "其他"
+      ]
+    },
+    {
+      "id": 5,
+      "question": "若选择就业，你倾向的就业行业",
+      "type": "single_choice",
+      "options": [
+        "医疗",
+        "银行",
+        "教育",
+        "文化传媒",
+        "其他"
+      ]
+    },
+    {
+      "id": 6,
+      "question": "你期望的薪资水平（单位：元）",
+      "type": "text_input",
+      "placeholder": "例如：7500、8500"
+    },
+    {
+      "id": 7,
+      "question": "你倾向的工作城市",
+      "type": "text_input",
+      "placeholder": "例如：南京、杭州、北京"
+    },
+    {
+      "id": 8,
+      "question": "你对当前毕业去向选择的满意度",
+      "type": "Likert",
+      "instructions": "1分表示满意度最低，5分表示满意度最高",
+      "scale": [
+        "1分（极不满意）",
+        "2分（不太满意）",
+        "3分（一般）",
+        "4分（比较满意）",
+        "5分（极满意）"
+      ],
+      "scoring": [
+        1,
+        2,
+        3,
+        4,
+        5
+      ]
+    },
+    {
+      "id": 9,
+      "question": "你是否有实习经历",
+      "type": "single_choice",
+      "options": [
+        "是",
+        "否"
+      ]
+    }
+  ]
+}

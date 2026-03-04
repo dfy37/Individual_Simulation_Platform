@@ -1,0 +1,43 @@
+{
+  "survey_name": "日本经济景气动向调查问卷",
+  "meta": {
+    "period": "填写调查期间，例如：202410"
+  },
+  "questions": [
+    {
+      "id": 1,
+      "question": "请填写您所在的地区。",
+      "type": "text_input",
+      "placeholder": "例如：北海道，九州·冲绳"
+    },
+    {
+      "id": 2,
+      "question": "请填写您所属的相关经济领域。",
+      "type": "text_input",
+      "placeholder": "例如：家庭收支动态、法人企业动向、零售业动态等"
+    },
+    {
+      "id": 3,
+      "question": "请填写您的行业与职业。",
+      "type": "text_input",
+      "placeholder": "例如：综合零售店（土特产）（经营者）"
+    },
+    {
+      "id": 4,
+      "question": "请填写您对当前景气现状的判断（如：增长 / 持平 / 下降）。",
+      "type": "text_input"
+    },
+    {
+      "id": 5,
+      "question": "请填写影响您判断的主要依据。",
+      "type": "text_input",
+      "placeholder": "例如：销售额变化、客流量、订单量、物价、行业政策等"
+    },
+    {
+      "id": 6,
+      "question": "请描述更具体的情况。",
+      "type": "text_area",
+      "placeholder": "例如：销售额同比127.6%，顾客数量恢复，价格上涨带动客单价提升等"
+    }
+  ]
+}

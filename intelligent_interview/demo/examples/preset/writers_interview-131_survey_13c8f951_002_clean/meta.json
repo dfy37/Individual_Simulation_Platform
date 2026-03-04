@@ -1,0 +1,8 @@
+{
+  "dataset_name": "writers_interview-131",
+  "respondent_id": "2",
+  "survey_name": "密歇根大学学生写作能力与写作经历调研",
+  "seed": 20240203,
+  "scenario_profile": "clean",
+  "source_mode": "prepared_source_bundle"
+}

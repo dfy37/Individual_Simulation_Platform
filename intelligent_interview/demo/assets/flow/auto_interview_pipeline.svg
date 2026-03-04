@@ -1,0 +1,66 @@
+<svg width="1200" height="430" viewBox="0 0 1200 430" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#f8fbff"/>
+      <stop offset="100%" stop-color="#eef3ff"/>
+    </linearGradient>
+    <style>
+      .title { font: 700 26px sans-serif; fill: #1f2a44; }
+      .subtitle { font: 400 14px sans-serif; fill: #4a5a7a; }
+      .box-title { font: 700 15px sans-serif; fill: #1d2842; }
+      .box-text { font: 400 12px sans-serif; fill: #4a5878; }
+      .emoji { font: 22px sans-serif; }
+    </style>
+  </defs>
+
+  <rect x="0" y="0" width="1200" height="430" fill="url(#bg)"/>
+  <text x="36" y="42" class="title">自动化访谈流程（Demo）</text>
+  <text x="36" y="66" class="subtitle">数据构建 → 访谈执行 → 异常恢复 → 回填评分 → 结果沉淀</text>
+
+  <rect x="30" y="95" rx="14" ry="14" width="210" height="190" fill="#ffffff" stroke="#d6e3ff"/>
+  <text x="48" y="132" class="emoji">🗂️</text>
+  <text x="48" y="160" class="box-title">1. 数据构建</text>
+  <text x="48" y="182" class="box-text">benchmark / persona /</text>
+  <text x="48" y="199" class="box-text">scenario_plan 生成</text>
+
+  <rect x="270" y="95" rx="14" ry="14" width="210" height="190" fill="#ffffff" stroke="#d6e3ff"/>
+  <text x="288" y="132" class="emoji">💬</text>
+  <text x="288" y="160" class="box-title">2. 访谈执行</text>
+  <text x="288" y="182" class="box-text">阶段规划 + 动作决策</text>
+  <text x="288" y="199" class="box-text">引导提问与自由追问</text>
+
+  <rect x="510" y="95" rx="14" ry="14" width="210" height="190" fill="#fff7ef" stroke="#ffd6ad"/>
+  <text x="528" y="132" class="emoji">⚠️</text>
+  <text x="528" y="160" class="box-title">3. 异常恢复</text>
+  <text x="528" y="182" class="box-text">状态流转 + 策略应用</text>
+  <text x="528" y="199" class="box-text">拒答回收 / 澄清修复</text>
+
+  <rect x="750" y="95" rx="14" ry="14" width="210" height="190" fill="#ffffff" stroke="#d6e3ff"/>
+  <text x="768" y="132" class="emoji">📊</text>
+  <text x="768" y="160" class="box-title">4. 回填与评估</text>
+  <text x="768" y="182" class="box-text">问卷回填 + 规则评分</text>
+  <text x="768" y="199" class="box-text">过程指标与总结</text>
+
+  <rect x="990" y="95" rx="14" ry="14" width="180" height="190" fill="#ffffff" stroke="#d6e3ff"/>
+  <text x="1008" y="132" class="emoji">🧾</text>
+  <text x="1008" y="160" class="box-title">5. 结果沉淀</text>
+  <text x="1008" y="182" class="box-text">JSONL + DB</text>
+  <text x="1008" y="199" class="box-text">回放与分析</text>
+
+  <g stroke="#5b7cff" stroke-width="2.5" fill="none">
+    <path d="M240 190 L270 190"/>
+    <path d="M480 190 L510 190"/>
+    <path d="M720 190 L750 190"/>
+    <path d="M960 190 L990 190"/>
+  </g>
+  <g fill="#5b7cff">
+    <polygon points="265,184 275,190 265,196"/>
+    <polygon points="505,184 515,190 505,196"/>
+    <polygon points="745,184 755,190 745,196"/>
+    <polygon points="985,184 995,190 985,196"/>
+  </g>
+
+  <rect x="30" y="315" rx="10" ry="10" width="1140" height="80" fill="#ffffff" stroke="#dde7fb"/>
+  <text x="48" y="345" class="box-title">说明</text>
+  <text x="48" y="368" class="box-text">· 蓝色区域为主流程，橙色区域为异常恢复环节。 · Demo 页面默认只展示 clean 样例并隐藏数据看板。</text>
+</svg>

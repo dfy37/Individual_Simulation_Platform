@@ -1,0 +1,26 @@
+{
+  "examples": [
+    {
+      "id": "qualitative_001_clean",
+      "display_name": "定性开放认知访谈（001_clean）",
+      "topic": "定性访谈",
+      "dir": "qualitative_001_clean",
+      "default": true,
+      "benchmark_dir": "benchmarks/定性数据开放认知访谈-14_survey_0bf697f6_001_clean",
+      "source_type": "questionnaire_json",
+      "questionnaire_path": "examples/live/qualitative_001_clean/questionnaire.json",
+      "questionnaire_only_path": "examples/live/qualitative_001_clean/questionnaire_only.json"
+    },
+    {
+      "id": "time_management_001_clean",
+      "display_name": "时间管理访谈（001_clean）",
+      "topic": "时间管理",
+      "dir": "time_management_001_clean",
+      "default": false,
+      "benchmark_dir": "benchmarks/international_students_international_students_time_management_questionnaire_001_clean",
+      "source_type": "questionnaire_json",
+      "questionnaire_path": "examples/live/time_management_001_clean/questionnaire.json",
+      "questionnaire_only_path": "examples/live/time_management_001_clean/questionnaire_only.json"
+    }
+  ]
+}

@@ -1,0 +1,23 @@
+{
+  "total_records": 37,
+  "by_model": {
+    "qwen3-max": {
+      "count": 12,
+      "avg_score": 0.4172
+    },
+    "deepseek-chat": {
+      "count": 12,
+      "avg_score": 0.3877
+    },
+    "gpt-4o": {
+      "count": 13,
+      "avg_score": 0.4118
+    }
+  },
+  "by_mode": {
+    "direct::no_event=False": {
+      "count": 37,
+      "avg_score": 0.4057
+    }
+  }
+}

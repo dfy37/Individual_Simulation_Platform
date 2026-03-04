@@ -1,0 +1,21 @@
+{
+  "survey_name": "日本经济景气动向调查问卷",
+  "questionnaire_path": "questionnaire-economy.json",
+  "sample_path": "sample-economy.json",
+  "field_map": {
+    "1": [
+      "地区"
+    ],
+    "2": [
+      "相关领域"
+    ],
+    "3": [
+      "行业·职业"
+    ],
+    "4": [],
+    "5": [
+      "判断依据"
+    ],
+    "6": []
+  }
+}

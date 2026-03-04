@@ -1,0 +1,8 @@
+{
+  "dataset_name": "云南社区调查",
+  "respondent_id": "2",
+  "survey_name": "云南省多县社区家庭综合情况调查问卷",
+  "seed": 20240203,
+  "scenario_profile": "clean",
+  "source_mode": "prepared_source_bundle"
+}

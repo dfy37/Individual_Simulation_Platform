@@ -1,0 +1,8 @@
+{
+  "dataset_name": "stress-dataset",
+  "respondent_id": "1",
+  "survey_name": "学生压力状况调研问卷大纲",
+  "seed": 20240202,
+  "scenario_profile": "clean",
+  "source_mode": "prepared_source_bundle"
+}
