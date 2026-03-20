@@ -154,12 +154,16 @@ class SocialAgent(OriginalOasisAgent, BaseAgent):
         # 4. 【修正】初始化 OriginalOasisAgent
         # - 传入 available_actions：父类会据此筛选 SocialAction 并存入 self.action_tools
         # - 传入 tools=[态度工具]：父类会将此列表与 action_tools 合并，注册给 LLM
+        # single_iteration=False: deepseek 会把 attitude + social action 分两轮 tool call，
+        # 需要允许多轮迭代（max_iteration=None）才能完整执行两个 tool。
+        kwargs.pop("single_iteration", None)
         OriginalOasisAgent.__init__(
-            self, 
-            agent_id=str(agent_id), 
-            user_info=user_info, 
-            available_actions=available_actions, 
-            tools=[self.attitude_update_tool], 
+            self,
+            agent_id=str(agent_id),
+            user_info=user_info,
+            available_actions=available_actions,
+            tools=[self.attitude_update_tool],
+            single_iteration=False,
             **kwargs
         )
         if hasattr(self, 'env') and hasattr(self.env, 'action'):
@@ -177,10 +181,13 @@ class SocialAgent(OriginalOasisAgent, BaseAgent):
         执行 LLM 思考与行动。
         """
         env_prompt = await self.env.to_text_prompt()
-        
+
         # 1. 构建 Prompt：强制要求双重动作
         attitude_str = "\n".join([f"- {k}: {v:.2f}" for k, v in self.attitude_scores.items()])
-        
+
+        # 获取 life sim 的最近活动（从 profile 注入，不放 system prompt）
+        life_context = self.user_info.profile["other_info"].get("life_context", "")
+
         # 【关键修正】获取真正可用的社交动作名称列表
         # self.action_tools 是父类根据 available_actions 过滤后生成的 FunctionTool 列表
         if hasattr(self, 'action_tools') and self.action_tools:
@@ -189,13 +196,24 @@ class SocialAgent(OriginalOasisAgent, BaseAgent):
             # Fallback: 如果没设置，父类可能默认加载了所有 actions
             valid_social_actions = [t.func.__name__ for t in self.env.action.get_openai_function_list()]
 
+        # life_context 作为补充背景放在末尾，避免抢占话题焦点
+        life_context_section = ""
+        if life_context:
+            life_context_section = (
+                f"\n(Background context: You were recently {life_context}. "
+                f"This is just context about your current state — focus your response "
+                f"on the platform content and topics above.)\n"
+            )
+
         prompt_content = (
-            f"You are a social media user interacting with a platform.\n"
-            f"Here is your current internal attitude state (-1.0 to 1.0):\n{attitude_str}\n\n"
-            f"Here is the environment:\n{env_prompt}\n\n"
-            f"You MUST perform TWO parallel actions in this single turn using tool calls:\n"
-            f"1. Call `{AttitudeToolHandler.TOOL_NAME}` to update your internal attitudes (or keep them same).\n"
-            f"2. Call ONE social action tool from the following AVAILABLE list: {valid_social_actions}.\n"
+            f"Here is the social media environment you see right now:\n{env_prompt}\n\n"
+            f"Your current internal attitude scores (-1.0 negative to 1.0 positive):\n{attitude_str}\n\n"
+            f"Now respond naturally. You must make exactly TWO tool calls:\n"
+            f"1. `{AttitudeToolHandler.TOOL_NAME}` — reflect on what you saw and update your attitude scores accordingly.\n"
+            f"2. One social action from: {valid_social_actions} — interact with the platform "
+            f"(e.g. create_post to share your opinion, like_post if you agree with someone, "
+            f"repost to spread content, or do_nothing if nothing interests you).\n"
+            f"{life_context_section}"
         )
 
         user_msg = BaseMessage.make_user_message(
@@ -205,23 +223,30 @@ class SocialAgent(OriginalOasisAgent, BaseAgent):
         
         try:
             agent_log.info(f"Agent {self.agent_id} observing environment...")
-            
-            # 2. 执行 LLM 调用 (CAMEL 会自动执行 Tool Calls)
-            response = await self.astep(user_msg)
-            
+
+            # 2. 执行 LLM 调用，单个 agent 60 秒超时
+            response = await asyncio.wait_for(self.astep(user_msg), timeout=60)
+
             # 3. 记录日志 (此时 Tool 已经执行完毕)
             if response.info and 'tool_calls' in response.info:
                 for tool_call in response.info['tool_calls']:
-                    # 这里的 tool_name 应该是 update_internal_attitude 或 create_post 等
                     agent_log.info(f"Agent {self.agent_id} executed: {tool_call.tool_name}")
 
             # 4. 写入当前态度到 DB (无论变没变)
             self.save_attitude_to_db()
-            
+
             return response
-            
+
+        except asyncio.TimeoutError:
+            agent_log.warning(f"Agent {self.agent_id}: LLM call timed out (60s)")
+            await self.env.action.do_nothing()
+            self.save_attitude_to_db()
+            return None
+
         except Exception as e:
             agent_log.error(f"Agent {self.agent_id} step error: {e}")
+            await self.env.action.do_nothing()
+            self.save_attitude_to_db()
             return e
 
 

@@ -20,5 +20,6 @@ export const getOnlineSimAttitude = (id)   => api.get(`/api/online-sim/${id}/att
 export const getOnlineSimStats    = (id)   => api.get(`/api/online-sim/${id}/stats`).then(r => r.data)
 export const interpretAttitude    = (id)   => api.post(`/api/online-sim/${id}/attitude/interpret`).then(r => r.data)
 export const getOnlineSimHistory  = ()     => api.get('/api/online-sim/history').then(r => r.data)
+export const deleteOnlineSim     = (id)   => api.delete(`/api/online-sim/${id}`).then(r => r.data)
 
 export default api

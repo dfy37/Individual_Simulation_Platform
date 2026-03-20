@@ -14,6 +14,11 @@ from collections import defaultdict
 from pathlib import Path
 from typing import Callable, Dict, List, Optional
 
+# deepseek 是国内 API，不需要走代理；httpx trust_env=True 会自动读取系统代理，
+# 导致通过 ClashX 等代理转发时长连接断开、请求挂死。
+os.environ.setdefault("NO_PROXY", "api.deepseek.com")
+os.environ.setdefault("no_proxy", "api.deepseek.com")
+
 # 将本模块所在目录加入 sys.path，以便 import 同级文件
 _SIM_DIR = Path(__file__).resolve().parent
 if str(_SIM_DIR) not in sys.path:
@@ -32,19 +37,20 @@ from intervention_processor import InterventionProcessor
 logger = logging.getLogger(__name__)
 
 # ── 群体分层配置 ──────────────────────────────────────────────────
-TIER_1_LLM_GROUPS = {"权威媒体/大V", "活跃KOL", "活跃创作者", "普通用户"}
+TIER_1_LLM_GROUPS = {"活跃KOL", "普通用户"}
 TIER_2_HEURISTIC_GROUPS = {"潜水用户"}
-TIER_1_ACTIVATION_RATES = {
-    "权威媒体/大V": 0.8,
-    "活跃KOL":     0.7,
-    "活跃创作者":  0.6,
-    "普通用户":    0.3,
+
+# 默认激活率（可通过 run_simulation(activation_rates=...) 覆盖）
+DEFAULT_ACTIVATION_RATES = {
+    "活跃KOL": 0.7,
+    "普通用户": 0.3,
+    "潜水用户": 0.1,
 }
-TIER_2_ACTIVATION_RATES = {"潜水用户": 0.1}
 
 CALIBRATION_END    = "2025-06-02T16:30:00"
 TIME_STEP_MINUTES  = 5
-MAX_LLM_PER_STEP   = 8   # 每步最多激活 N 个 LLM agent，避免并发请求打爆 API
+MAX_LLM_PER_STEP   = 8   # 每步最多激活 N 个 LLM agent
+ENV_STEP_TIMEOUT   = 300  # env.step() 超时秒数
 
 
 def _aggregate_attitude_to_table(
@@ -125,6 +131,7 @@ async def run_simulation(
     model_api_key:    str,
     attitude_config:  Dict[str, str],   # {metric_key: description}
     agent_map:        Dict[int, Dict],  # int_id → {name, username, group, orig_id}
+    activation_rates: Optional[Dict[str, float]] = None,  # group → prob，覆盖默认值
     progress_callback: Optional[Callable] = None,  # (step, total) → None
     log_callback:     Optional[Callable] = None,   # (message) → None
 ) -> None:
@@ -140,18 +147,29 @@ async def run_simulation(
     if not model_base_url or not model_api_key:
         raise RuntimeError("Missing MARS_MODEL_BASE_URL or MARS_MODEL_API_KEY")
 
+    # 合并激活率：调用方传入的优先
+    rates = {**DEFAULT_ACTIVATION_RATES, **(activation_rates or {})}
+    _log(f"激活率配置: {rates}")
+
     attitude_metrics_list = list(attitude_config.keys())
     metric_key = attitude_metrics_list[0] if attitude_metrics_list else "attitude_topic"
 
     # --- 1. Agent 模型 ---
     _log(f"正在初始化 Agent 模型: {model_name}")
+    # camel 的 token_limit 属性读取 model_config_dict["max_tokens"] 作为上下文窗口大小，
+    # 但该值同时会作为 API 请求的 max_tokens 参数发送。为避免冲突：
+    # 1. model_config_dict 中设正常的生成长度 (512)
+    # 2. 创建后手动覆盖 token_limit，让 memory 系统使用正确的上下文窗口
     model = OpenAICompatibleModel(
         model_type=model_name,
         model_config_dict={"temperature": 0.5, "max_tokens": 512},
         api_key=model_api_key,
         url=model_base_url,
     )
-    _log("Agent 模型初始化完毕。")
+    # 让 memory 系统使用 65536 作为上下文窗口大小，
+    # 而 API 请求的 max_tokens 保持 512（由 model_config_dict 控制）。
+    type(model).token_limit = property(lambda self: 65536)
+    _log(f"Agent 模型初始化完毕。token_limit={model.token_limit}, API max_tokens={model.model_config_dict['max_tokens']}")
 
     # --- 2. Attitude 标注器 ---
     # 使用 _VLLMAttitudeAnnotator（OpenAI-compatible HTTP API，适用于 deepseek）
@@ -262,10 +280,10 @@ async def run_simulation(
                 continue
             grp = agent.group
             if grp in TIER_1_LLM_GROUPS:
-                if random.random() < TIER_1_ACTIVATION_RATES.get(grp, 0.0):
+                if random.random() < rates.get(grp, 0.3):
                     llm_agents_to_run.append(agent)
             elif grp in TIER_2_HEURISTIC_GROUPS:
-                if random.random() < TIER_2_ACTIVATION_RATES.get(grp, 0.0):
+                if random.random() < rates.get(grp, 0.1):
                     heuristic_agents_to_run.append(agent)
 
         # 限制每步并发 LLM 请求数，防止 API 速率限制导致挂起
@@ -283,19 +301,22 @@ async def run_simulation(
 
         if all_actions:
             _log(f"执行 {len(all_actions)} 个 Agent 的 actions...")
-            await env.step(all_actions)
+            try:
+                await asyncio.wait_for(env.step(all_actions), timeout=ENV_STEP_TIMEOUT)
+            except asyncio.TimeoutError:
+                _log(f"Step {current_step}: env.step() 超时 ({ENV_STEP_TIMEOUT}s)，跳过本步")
         else:
             _log("本轮无 Agent 激活，跳过 step。")
 
         # Attitude 标注 + 聚合（非致命，失败不中断仿真）
         try:
             _log(f"Step {current_step}: 开始 Attitude 标注...")
-            await annotator.annotate_table(
+            await asyncio.wait_for(annotator.annotate_table(
                 db_path=db_path,
                 table_name="post",
                 only_sim_posts=True,
                 batch_size=50,
-            )
+            ), timeout=ENV_STEP_TIMEOUT)
             _aggregate_attitude_to_table(db_path, current_step, agent_map, metric_key)
             _log(f"Step {current_step}: Attitude 标注聚合完成")
         except Exception as e:

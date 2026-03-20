@@ -20,6 +20,7 @@ import logging
 import os
 import queue
 import re
+import shutil
 import sqlite3
 import sys
 import threading
@@ -77,7 +78,8 @@ def _load_api_config() -> dict[str, str]:
 # ── 仿真状态 ──────────────────────────────────────────────────
 class OnlineSimState:
     def __init__(self, sim_id: str, db_path: str, total_steps: int,
-                 agent_map: dict[int, dict], topic: str = "", metric_key: str = ""):
+                 agent_map: dict[int, dict], topic: str = "", metric_key: str = "",
+                 sim_name: str = ""):
         self.sim_id      = sim_id
         self.db_path     = db_path
         self.status      = "running"
@@ -88,6 +90,7 @@ class OnlineSimState:
         self.agent_map   = agent_map   # int_id → {name, username, group}
         self.topic       = topic
         self.metric_key  = metric_key
+        self.sim_name    = sim_name or topic
 
 
 _active: dict[str, OnlineSimState] = {}
@@ -106,6 +109,7 @@ def _save_meta(state: OnlineSimState, end_time: str | None = None) -> None:
         d.mkdir(parents=True, exist_ok=True)
         meta = {
             "sim_id":      state.sim_id,
+            "sim_name":    state.sim_name,
             "topic":       state.topic,
             "metric_key":  state.metric_key,
             "total_steps": state.total_steps,
@@ -138,8 +142,18 @@ def _get_state(sim_id: str) -> OnlineSimState | None:
             agent_map   = agent_map,
             topic       = meta.get("topic", ""),
             metric_key  = meta.get("metric_key", ""),
+            sim_name    = meta.get("sim_name", ""),
         )
-        state.status     = meta.get("status", "completed")
+        raw_status = meta.get("status", "completed")
+        # 磁盘上 status=running 但不在内存 _active 中 → 进程曾被中断，修正状态
+        if raw_status == "running":
+            raw_status = "interrupted"
+            try:
+                meta["status"] = "interrupted"
+                p.write_text(json.dumps(meta, ensure_ascii=False, indent=2), encoding="utf-8")
+            except Exception:
+                pass
+        state.status     = raw_status
         state.start_time = meta.get("start_time", "")  # type: ignore[attr-defined]
         return state
     except Exception as e:
@@ -164,6 +178,7 @@ def _make_agent_csv(agents: list[dict], path: Path, metric_key: str) -> dict[int
         "description", "user_char", "group",
         "following_agentid_list", att_col,
         "initial_attitude_avg", "attitude_avg",
+        "life_context",
     ]
 
     # str-id → int-id 映射，用于 following 列表转换
@@ -205,6 +220,7 @@ def _make_agent_csv(agents: list[dict], path: Path, metric_key: str) -> dict[int
                 att_col:                  0.0,
                 "initial_attitude_avg":   0.0,
                 "attitude_avg":           0.0,
+                "life_context":           a.get("_intention", ""),
             })
             agent_map[int_id] = {
                 "name":     a.get("name", ""),
@@ -226,17 +242,26 @@ def _make_intervention_csv(interventions: list[dict], path: Path) -> None:
         writer = csv.DictWriter(f, fieldnames=fieldnames)
         writer.writeheader()
         for iv in interventions:
-            if not (iv.get("content") or "").strip():
-                continue
+            iv_type = iv.get("type", "broadcast")
+            # For register_user, user_profile is required (content is the instruction)
+            # For bribery, content is the instruction text
+            # For broadcast, content is the message
+            if iv_type == "register_user":
+                # user_profile is required; skip if empty
+                if not (iv.get("user_profile") or "").strip():
+                    continue
+            else:
+                if not (iv.get("content") or "").strip():
+                    continue
             writer.writerow({
                 "time_step":         int(iv.get("step", 1)),
-                "intervention_type": iv.get("type", "broadcast"),
+                "intervention_type": iv_type,
                 "content":           iv.get("content", ""),
                 "target_group":      iv.get("target_group", ""),
                 "target_id":         "",
                 "ratio":             float(iv.get("ratio", 1.0)),
-                "attitude_target":   "{}",
-                "user_profile":      "{}",
+                "attitude_target":   iv.get("attitude_target", "{}"),
+                "user_profile":      iv.get("user_profile", "{}"),
             })
 
 
@@ -296,6 +321,7 @@ def start():
         return jsonify({"error": "No agents provided"}), 400
 
     topic      = body.get("topic", "topic")
+    sim_name   = body.get("sim_name", "") or topic
     topic_key  = re.sub(r"[^a-zA-Z0-9]", "_", topic)[:24].strip("_") or "topic"
     metric_key = f"attitude_{topic_key}"
 
@@ -309,7 +335,7 @@ def start():
 
     total_steps = int(body.get("total_steps", 4))
     state = OnlineSimState(sim_id, str(res_dir / "oasis.db"), total_steps, agent_map,
-                           topic=topic, metric_key=metric_key)
+                           topic=topic, metric_key=metric_key, sim_name=sim_name)
     state.start_time = datetime.now().isoformat()  # type: ignore[attr-defined]
     _active[sim_id] = state
     _save_meta(state)   # 立即落盘（status=running）
@@ -360,18 +386,48 @@ def get_history():
                 continue
             try:
                 meta = json.loads(mp.read_text(encoding="utf-8"))
+                status = meta.get("status", "unknown")
+                # 磁盘上 status=running 但不在内存 _active 中 → 进程曾被中断
+                if status == "running" and meta["sim_id"] not in _active:
+                    status = "interrupted"
+                    try:
+                        meta["status"] = "interrupted"
+                        mp.write_text(json.dumps(meta, ensure_ascii=False, indent=2), encoding="utf-8")
+                    except Exception:
+                        pass
                 records.append({
                     "sim_id":      meta["sim_id"],
+                    "sim_name":    meta.get("sim_name", meta.get("topic", "")),
                     "topic":       meta.get("topic", ""),
                     "total_steps": meta.get("total_steps", 0),
                     "num_agents":  meta.get("num_agents", 0),
-                    "status":      meta.get("status", "unknown"),
+                    "status":      status,
                     "start_time":  meta.get("start_time", ""),
                     "end_time":    meta.get("end_time", ""),
                 })
             except Exception:
                 pass
     return jsonify(records)
+
+
+@bp.route("/<sim_id>", methods=["DELETE"])
+def delete_sim(sim_id):
+    """删除指定仿真记录及其所有文件。"""
+    # 不允许删除正在运行的仿真
+    if sim_id in _active:
+        return jsonify({"error": "Cannot delete a running simulation"}), 409
+
+    sim_dir = RESULTS_DIR / sim_id
+    if not sim_dir.exists():
+        return jsonify({"error": "Simulation not found"}), 404
+
+    try:
+        shutil.rmtree(sim_dir)
+        logger.info(f"Deleted simulation: {sim_id}")
+        return jsonify({"ok": True})
+    except Exception as e:
+        logger.error(f"Failed to delete simulation {sim_id}: {e}")
+        return jsonify({"error": str(e)}), 500
 
 
 @bp.route("/<sim_id>/posts")
@@ -433,7 +489,14 @@ def get_posts(sim_id):
         result      = []
         for i, r in enumerate(rows):
             item = dict(r)
-            item["step"] = max(1, min(total_steps, int(i * total_steps / max(total, 1)) + 1))
+            # Simulation posts store integer step number in created_at
+            raw_step = item.get("created_at")
+            try:
+                step = int(raw_step)
+                item["step"] = max(1, min(total_steps, step))
+            except (ValueError, TypeError):
+                # Fallback for non-integer created_at (e.g. timestamp strings)
+                item["step"] = max(1, min(total_steps, int(i * total_steps / max(total, 1)) + 1))
             try:
                 uid = int(item.get("user_id") or 0)
             except (ValueError, TypeError):
