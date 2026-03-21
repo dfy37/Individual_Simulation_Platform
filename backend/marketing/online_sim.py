@@ -131,15 +131,20 @@ def _get_state(sim_id: str) -> OnlineSimState | None:
     try:
         meta = json.loads(p.read_text(encoding="utf-8"))
         agent_map = {int(k): v for k, v in meta.get("agent_map", {}).items()}
+        # 优先用当前 RESULTS_DIR 推导路径，避免项目移动后绝对路径失效
+        derived_db = str(RESULTS_DIR / meta["sim_id"] / "oasis.db")
+        db_path = derived_db if os.path.exists(derived_db) else meta.get("db_path", derived_db)
         state = OnlineSimState(
             sim_id      = meta["sim_id"],
-            db_path     = meta["db_path"],
+            db_path     = db_path,
             total_steps = meta.get("total_steps", 1),
             agent_map   = agent_map,
             topic       = meta.get("topic", ""),
             metric_key  = meta.get("metric_key", ""),
         )
-        state.status     = meta.get("status", "completed")
+        # 从磁盘恢复时，若状态仍为 running 说明进程中断，修正为 completed
+        stored_status = meta.get("status", "completed")
+        state.status = "completed" if stored_status == "running" else stored_status
         state.start_time = meta.get("start_time", "")  # type: ignore[attr-defined]
         return state
     except Exception as e:

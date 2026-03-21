@@ -4,6 +4,7 @@
     <!-- NavBar — Step 2 active -->
     <NavBar>
       <template #right>
+        <button class="nav-back-btn" @click="router.push('/setup')">← Back</button>
         <div class="step-indicator">
           <div class="step-pip done">1</div>
           <div class="step-line done"></div>
@@ -147,6 +148,9 @@
           >
             <span class="chip-dot" :style="{ background: agentColor(a) }"></span>
             <span class="chip-name">{{ a.name }}</span>
+            <!-- 消息收发小图标 -->
+            <span v-if="a.sent" class="chip-msg-badge sent" title="发送了消息">↑</span>
+            <span v-if="a.received?.length" class="chip-msg-badge recv" title="收到消息">↓{{ a.received.length }}</span>
           </div>
         </div>
 
@@ -216,10 +220,42 @@
                 </div>
               </div>
 
+              <!-- ── Messages（本步收发） ── -->
+              <template v-if="detailAgent.sent || detailAgent.received?.length">
+                <div class="drawer-section-title">Messages This Step</div>
+                <div class="msg-list">
+                  <div v-if="detailAgent.sent" class="msg-row sent-row">
+                    <div class="msg-header">
+                      <span class="msg-dir sent-dir">↑ 发送</span>
+                      <span class="msg-target-badge" :class="targetBadgeClass(detailAgent.sent.target)">
+                        {{ formatTarget(detailAgent.sent.target) }}
+                      </span>
+                    </div>
+                    <div class="msg-content">{{ detailAgent.sent.content }}</div>
+                  </div>
+                  <div v-for="(r, i) in detailAgent.received" :key="i" class="msg-row recv-row">
+                    <div class="msg-header">
+                      <span class="msg-dir recv-dir">↓ 收到</span>
+                      <span class="msg-target-badge" :class="targetBadgeClass(r.target_type)">
+                        {{ r.target_type }}
+                      </span>
+                      <span class="msg-sender">{{ r.sender_name }}</span>
+                    </div>
+                    <div class="msg-content">{{ r.content }}</div>
+                  </div>
+                </div>
+              </template>
+
               <div class="drawer-section-title">Event History</div>
               <div class="event-list">
                 <div v-for="entry in agentHistory" :key="entry.step" class="event-item">
-                  <div class="event-meta">Step {{ entry.step }} · {{ entry.sim_time }}</div>
+                  <div class="event-meta">
+                    Step {{ entry.step }} · {{ entry.sim_time }}
+                    <span v-if="entry.sent" class="ev-badge ev-sent" title="发送了消息">↑</span>
+                    <span v-if="entry.received?.length" class="ev-badge ev-recv" title="收到消息">
+                      ↓{{ entry.received.length }}
+                    </span>
+                  </div>
                   <div class="event-intention">{{ entry.intention }}</div>
                   <div class="event-result" v-if="entry.act_result">▸ {{ entry.act_result }}</div>
                 </div>
@@ -230,6 +266,46 @@
         </div>
 
       </main>
+
+      <!-- ── Message Panel ── -->
+      <aside class="msg-panel" :class="{ collapsed: !msgPanelOpen }">
+        <!-- 折叠/展开 tab -->
+        <div class="msg-panel-tab" @click="msgPanelOpen = !msgPanelOpen">
+          <span class="tab-icon">💬</span>
+          <span v-if="!msgPanelOpen" class="tab-count-vert">
+            {{ stepMessages.length || '' }}
+          </span>
+        </div>
+
+        <div v-if="msgPanelOpen" class="msg-panel-inner">
+          <div class="msg-panel-header">
+            <span class="msg-panel-title">Messages</span>
+            <span v-if="currentStepData" class="msg-panel-step">Step {{ currentStepData.step }}</span>
+            <span v-if="stepMessages.length" class="msg-panel-count">{{ stepMessages.length }}</span>
+          </div>
+
+          <div class="msg-panel-body">
+            <div v-if="!stepMessages.length" class="msg-panel-empty">
+              <div class="mp-empty-ico">💬</div>
+              <div class="mp-empty-txt">No messages this step</div>
+            </div>
+
+            <div v-for="(m, i) in stepMessages" :key="i" class="mp-card"
+                 :style="{ borderLeftColor: agentColorById(m.sender_id) }">
+              <div class="mp-card-header">
+                <span class="mp-sender" :style="{ color: agentColorById(m.sender_id) }">
+                  {{ m.sender_name }}
+                </span>
+                <span class="mp-target-badge" :class="targetBadgeClass(m.target)">
+                  {{ formatTarget(m.target) }}
+                </span>
+              </div>
+              <div class="mp-content">{{ m.content }}</div>
+            </div>
+          </div>
+        </div>
+      </aside>
+
     </div>
   </div>
 </template>
@@ -252,6 +328,9 @@ const AGENT_COLORS  = ['#FF6B35','#004E89','#7B2D8E','#1A936F','#C5283D','#E9724
 
 // ── Template refs ────────────────────────────────────────────
 const mapEl = ref(null)
+
+// ── Message Panel ─────────────────────────────────────────────
+const msgPanelOpen = ref(true)
 
 // ── Non-reactive state ────────────────────────────────────────
 let mapInstance    = null
@@ -282,6 +361,7 @@ const autoFollow = ref(true)
 
 const currentStepData = computed(() => viewingSteps.value[displayIdx.value] ?? null)
 const agentList       = computed(() => currentStepData.value?.agents ?? [])
+const stepMessages    = computed(() => currentStepData.value?.channel_messages ?? [])
 
 // ── History list ─────────────────────────────────────────────
 const historyList = ref([])
@@ -431,6 +511,28 @@ const agentHistory = computed(() => {
     .filter(r => r.intention !== undefined)
     .reverse()
 })
+
+// 按 agent_id 查颜色（消息面板中发送方着色）
+function agentColorById(agentId) {
+  const agent = agentDataCache[agentId]
+  return agent ? agentColor(agent) : AGENT_COLORS[agentId % AGENT_COLORS.length]
+}
+
+// 格式化 target 字段为可读标签
+function formatTarget(target) {
+  if (target === 'nearby') return '附近'
+  if (target === 'all')    return '广播'
+  // 数字 agent_id：尝试找名字
+  const name = agentDataCache[target]?.name
+  return name ? `→${name}` : `私信`
+}
+
+// target badge 的 CSS class
+function targetBadgeClass(target) {
+  if (target === 'nearby' || target === '附近') return 'badge-nearby'
+  if (target === 'all'    || target === '广播') return 'badge-all'
+  return 'badge-private'
+}
 
 function openDetail(agentId) {
   selectedId.value = agentId
@@ -773,7 +875,7 @@ input[type=range]::-webkit-slider-thumb {
 /* ── Map Area ── */
 .map-area {
   flex: 1; position: relative; overflow: hidden;
-  background: #e8e8e8;
+  background: #e8e8e8; min-width: 0;
 }
 .map-canvas { position: absolute; inset: 0; }
 
@@ -912,6 +1014,137 @@ input[type=range]::-webkit-slider-thumb {
 .event-intention { font-size: 12px; color: var(--text); font-weight: 500; margin-bottom: 3px; }
 .event-result    { font-size: 11px; color: var(--text-dim); line-height: 1.5; }
 .event-empty     { font-size: 12px; color: var(--text-muted); padding: 10px 0; }
+
+/* ── Agent chip message badges ── */
+.chip-msg-badge {
+  font-size: 9px; font-weight: 700; padding: 1px 4px;
+  border-radius: 8px; line-height: 1.4; flex-shrink: 0;
+}
+.chip-msg-badge.sent { background: rgba(124,58,237,.15); color: var(--purple); }
+.chip-msg-badge.recv { background: rgba(34,197,94,.15);  color: #16a34a; }
+
+/* ── Drawer: Messages section ── */
+.msg-list { display: flex; flex-direction: column; gap: 6px; }
+.msg-row {
+  display: flex; flex-direction: column;
+  gap: 4px; padding: 7px 10px; border-radius: 8px;
+  background: var(--bg); border: 1px solid var(--border);
+  font-size: 12px; line-height: 1.5;
+}
+.sent-row { border-left: 3px solid var(--purple); }
+.recv-row { border-left: 3px solid #16a34a; }
+.msg-header { display: flex; align-items: center; gap: 5px; flex-wrap: wrap; }
+.msg-dir  { font-size: 11px; font-weight: 700; flex-shrink: 0; white-space: nowrap; }
+.sent-dir { color: var(--purple); }
+.recv-dir { color: #16a34a; }
+.msg-sender { font-weight: 600; color: var(--text-dim); flex-shrink: 0; }
+.msg-content { color: var(--text); word-break: break-all; }
+
+/* target badge (shared by drawer + panel) */
+.msg-target-badge {
+  font-size: 10px; font-weight: 600; padding: 1px 6px;
+  border-radius: 8px; flex-shrink: 0; white-space: nowrap;
+}
+.badge-nearby  { background: rgba(245,158,11,.15); color: #d97706; }
+.badge-all     { background: rgba(59,130,246,.15);  color: #3b82f6; }
+.badge-private { background: rgba(124,58,237,.12);  color: var(--purple); }
+
+/* ── Event history badges ── */
+.ev-badge {
+  font-size: 9px; font-weight: 700; padding: 1px 4px;
+  border-radius: 6px; margin-left: 4px;
+}
+.ev-sent { background: rgba(124,58,237,.12); color: var(--purple); }
+.ev-recv { background: rgba(34,197,94,.12);  color: #16a34a; }
+
+/* ── Message Panel ── */
+.msg-panel {
+  width: 280px; flex-shrink: 0;
+  border-left: 1px solid var(--border);
+  background: var(--surface);
+  display: flex; flex-direction: row;
+  overflow: hidden; transition: width .2s ease;
+}
+.msg-panel.collapsed { width: 32px; }
+
+/* 展开后右侧内容区（纵向排列）*/
+.msg-panel-inner {
+  flex: 1; min-width: 0;
+  display: flex; flex-direction: column;
+  overflow: hidden;
+}
+
+/* 折叠 tab（左侧竖条，始终可见）*/
+.msg-panel-tab {
+  width: 32px; flex-shrink: 0;
+  display: flex; flex-direction: column; align-items: center;
+  justify-content: flex-start; padding-top: 16px; gap: 8px;
+  cursor: pointer; border-right: 1px solid var(--border);
+  background: var(--surface);
+  transition: background .12s;
+}
+.msg-panel-tab:hover { background: rgba(124,58,237,.04); }
+.tab-icon   { font-size: 14px; }
+.tab-count-vert {
+  font-size: 10px; font-weight: 700; color: var(--purple);
+  writing-mode: vertical-rl; letter-spacing: 1px;
+}
+
+/* 面板主体（展开时可见）*/
+.msg-panel-header {
+  display: flex; align-items: center; gap: 8px;
+  padding: 14px 14px 10px;
+  border-bottom: 1px solid var(--border); flex-shrink: 0;
+}
+.msg-panel-title { font-size: 12px; font-weight: 700; color: var(--text); }
+.msg-panel-step  { font-size: 11px; color: var(--text-muted); }
+.msg-panel-count {
+  margin-left: auto; font-size: 11px; font-weight: 700;
+  background: rgba(124,58,237,.12); color: var(--purple);
+  padding: 1px 7px; border-radius: 10px;
+}
+
+.msg-panel-body {
+  flex: 1; overflow-y: auto; padding: 10px 12px 16px;
+  display: flex; flex-direction: column; gap: 8px;
+}
+.msg-panel-body::-webkit-scrollbar { width: 3px; }
+.msg-panel-body::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+/* 空状态 */
+.msg-panel-empty {
+  flex: 1; display: flex; flex-direction: column;
+  align-items: center; justify-content: center; gap: 8px;
+  color: var(--text-muted); padding: 20px 0;
+}
+.mp-empty-ico { font-size: 28px; opacity: .4; }
+.mp-empty-txt { font-size: 12px; }
+
+/* 消息卡片 */
+.mp-card {
+  border-left: 3px solid var(--border);
+  background: var(--bg); border: 1px solid var(--border);
+  border-radius: 8px; padding: 8px 10px;
+  display: flex; flex-direction: column; gap: 5px;
+}
+.mp-card-header { display: flex; align-items: center; gap: 6px; }
+.mp-sender { font-size: 12px; font-weight: 600; }
+.mp-content { font-size: 12px; color: var(--text); line-height: 1.5; word-break: break-all; }
+
+/* ── Nav back button ── */
+.nav-back-btn {
+  margin-right: 12px;
+  padding: 5px 12px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-dim);
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  cursor: pointer;
+  transition: color 0.15s, background 0.15s;
+}
+.nav-back-btn:hover { color: var(--text); background: rgba(0,0,0,0.04); }
 
 /* ── Step indicator (mirrors SetupView) ── */
 .step-indicator { display: flex; align-items: center; gap: 6px; }

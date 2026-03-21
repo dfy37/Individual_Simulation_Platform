@@ -150,7 +150,9 @@ async def _async_sim(state: SimulationState) -> None:
         from urban_sim.mobility_space import MobilitySpace, MobilityPersonInit
         from urban_sim.social_space import SimpleSocialSpace
 
-        agents, mobility_persons, agents_meta = _build_agents(profiles, num_agents)
+        # 构建 id→name 名单，传给 PersonAgent 的 send_phase prompt
+        agent_roster = {i + 1: prof["name"] for i, prof in enumerate(profiles[:num_agents])}
+        agents, mobility_persons, agents_meta = _build_agents(profiles, num_agents, agent_roster)
 
         # 持久化 meta（running 前）
         meta = {
@@ -189,6 +191,17 @@ async def _async_sim(state: SimulationState) -> None:
                 "sim_time": sim.current_time.strftime("%H:%M"),
                 "sim_date": sim.current_time.strftime("%Y-%m-%d"),
                 "agents":   step_agents,
+                # 只保留公开消息（nearby / all），私信不出现在公共面板
+                "channel_messages": [
+                    {
+                        "sender_id":   m.sender_id,
+                        "sender_name": m.sender_name,
+                        "content":     m.content,
+                        "target":      m.target,
+                    }
+                    for m in sim.channel.all_messages
+                    if m.target in ("nearby", "all")
+                ],
             }
             state.all_steps.append(ev)
             state.current_step = step
@@ -246,9 +259,13 @@ async def _async_sim(state: SimulationState) -> None:
 
 # ── 辅助函数 ───────────────────────────────────────────────
 
-def _build_agents(profiles: list[dict], num_agents: int):
+def _build_agents(profiles: list[dict], num_agents: int,
+                  agent_roster: dict[int, str] | None = None):
     """
     根据学生画像构建 PersonAgent 列表、MobilityPersonInit 列表和 agents_meta。
+
+    Args:
+        agent_roster: {agent_id: name} 映射，传给 PersonAgent 用于 send_phase prompt。
 
     Returns:
         (agents, mobility_persons, agents_meta)
@@ -271,6 +288,7 @@ def _build_agents(profiles: list[dict], num_agents: int):
                 safety =nd.get("safety",  0.90),
                 social =nd.get("social",  0.55),
             ),
+            agent_roster=agent_roster or {},
         ))
         mobility_persons.append(
             MobilityPersonInit(id=aid, position={"aoi_id": aoi})
@@ -322,6 +340,8 @@ async def _collect_step_agents(sim) -> list[dict]:
             "reasoning":   rec.get("reasoning",   ""),
             "act_result":  rec.get("act_result",  ""),
             "observation": rec.get("observation", ""),
+            "sent":        rec.get("sent"),           # {target, content} | null
+            "received":    rec.get("received", []),   # [{sender_id, sender_name, content, target_type}]
         })
 
     return result

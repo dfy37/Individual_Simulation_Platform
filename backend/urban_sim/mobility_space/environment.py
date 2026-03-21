@@ -1,11 +1,13 @@
 """Simulator: Urban Simulator"""
 
 import asyncio
+import math
 import os
 from datetime import datetime
 from typing import Any, List, Literal, Optional, Tuple, Union
 
 import logging
+import numpy as np
 
 import shapely
 from .map import Map
@@ -40,6 +42,69 @@ POI_START_ID = 7_0000_0000
 DRIVING_SPEED_RATIO = 0.8  # the speed of driving is 80% of the max speed of the road
 WALKING_SPEED = 1.34  # the speed of walking is 1.34 m/s
 DRIVING_SPEED = 8.0  # the speed of driving is 8.0 m/s (approx 28.8 km/h)
+
+# ── Gravity model ─────────────────────────────────────────────────────────────
+
+def _gravity_sample(
+    candidates: list[tuple[dict, float]],
+    sample_size: int,
+) -> list[tuple[dict, float]]:
+    """
+    Apply gravity model to down-sample a candidate list of (data_dict, distance_m) tuples.
+
+    Weight formula (mirrors AgentSociety/mobility_block.py):
+        density_i  = n_in_ring / ring_area      (ring = 1 km bin)
+        weight_i   = density_i / distance_i²
+
+    Closer POIs in less-dense rings get higher probability.
+    When candidates ≤ sample_size, returns all candidates unchanged.
+    """
+    n = len(candidates)
+    if n == 0:
+        return []
+    if n <= sample_size:
+        return candidates
+
+    # Bin into 1 km rings
+    bins: dict[str, list] = {f"{d}k": [] for d in range(1, 11)}
+    bins["more"] = []
+    for item in candidates:
+        dist = item[1]
+        placed = False
+        for d in range(1, 11):
+            if (d - 1) * 1000 <= dist < d * 1000:
+                bins[f"{d}k"].append(item)
+                placed = True
+                break
+        if not placed:
+            bins["more"].append(item)
+
+    # Compute weight for each candidate
+    weights: list[float] = []
+    for item in candidates:
+        dist = max(item[1], 1.0)
+        w = 0.0
+        for d in range(1, 11):
+            if (d - 1) * 1000 <= dist < d * 1000:
+                n_ring = len(bins[f"{d}k"])
+                ring_area = math.pi * ((d * 1000) ** 2 - ((d - 1) * 1000) ** 2)
+                density = n_ring / ring_area
+                w = density / (dist ** 2)
+                break
+        else:
+            # Beyond 10 km — simple inverse-square, no ring correction
+            n_more = max(len(bins["more"]), 1)
+            outer_area = math.pi * (dist ** 2 - (10_000) ** 2)
+            density = n_more / max(outer_area, 1.0)
+            w = density / (dist ** 2)
+        weights.append(max(w, 1e-12))
+
+    probs = np.array(weights, dtype=float)
+    probs /= probs.sum()
+
+    actual = min(sample_size, n)
+    indices = np.random.choice(n, size=actual, replace=False, p=probs)
+    return [candidates[i] for i in indices]
 
 
 class PositionInit(BaseModel):
@@ -663,22 +728,29 @@ class MobilitySpace(EnvBase):
         # x/y are passed as longitude/latitude by the LLM;
         # _get_around_pois expects projected XY coordinates — convert here.
         xy_center = self._map.projector(x, y)
-        pois = self._get_around_pois(
+
+        # Query a larger candidate pool so the gravity model has enough diversity.
+        candidate_limit = max(200, self._poi_search_limit * 20)
+        raw = self._get_around_pois(
             center=xy_center,
             radius=radius,
             poi_type=category,
-            limit=self._poi_search_limit,
+            limit=candidate_limit,
         )
+
+        # Build (poi_dict, distance_m) tuples and apply gravity model.
+        candidates = [(p["poi"], p["distance"]) for p in raw]
+        sampled = _gravity_sample(candidates, self._poi_search_limit)
+
         clean_pois = []
-        for p in pois:
-            clean_poi = Poi(
-                id=p["poi"]["id"],
-                name=p["poi"]["name"],
-                position=p["poi"]["position"],
-                category=p["poi"]["category"][-1],
-                distance=p["distance"],
-            )
-            clean_pois.append(clean_poi)
+        for poi_dict, dist in sampled:
+            clean_pois.append(Poi(
+                id=poi_dict["id"],
+                name=poi_dict["name"],
+                position=poi_dict["position"],
+                category=poi_dict["category"][-1],
+                distance=round(dist, 1),
+            ))
 
         return FindNearbyPoisResponse(pois=clean_pois)
 
@@ -757,22 +829,25 @@ class MobilitySpace(EnvBase):
             Use the returned id in move_to().
         """
         xy_center = self._map.projector(x, y)
-        raw = self._map.query_aois(center=xy_center, radius=radius, limit=limit * 3)
+        # Fetch a larger pool so gravity model has diversity.
+        raw = self._map.query_aois(center=xy_center, radius=radius, limit=limit * 20)
+
+        # Keep only named AOIs and build (aoi_dict, distance_m) candidates.
+        candidates = [
+            (aoi, dist) for aoi, dist in raw if aoi.get("name")
+        ]
+        sampled = _gravity_sample(candidates, limit)
+
         results = []
-        for aoi, dist in raw:
-            name = aoi.get("name") or ""
-            if not name:
-                continue
+        for aoi, dist in sampled:
             centroid = aoi["shapely_xy"].centroid
             lnglat = list(self._map.projector(centroid.x, centroid.y, inverse=True))
             results.append(AoiResult(
                 id=aoi["id"],
-                name=name,
+                name=aoi["name"],
                 lnglat=lnglat,
                 distance=round(dist, 1),
             ))
-            if len(results) >= limit:
-                break
         return FindAoisResponse(aois=results)
 
     async def close(self):

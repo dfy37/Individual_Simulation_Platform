@@ -4,6 +4,7 @@
     <!-- NavBar — Step 3 active -->
     <NavBar>
       <template #right>
+        <button class="nav-back-btn" @click="router.push('/simulation')">← Back</button>
         <div class="step-indicator">
           <div class="step-pip done">1</div>
           <div class="step-line done"></div>
@@ -399,6 +400,7 @@
 
 <script setup>
 import { ref, computed, onMounted, onBeforeUnmount, nextTick } from 'vue'
+import { useRouter } from 'vue-router'
 import NavBar from '../components/NavBar.vue'
 import { getProfiles, getRelationships, startOnlineSim, getOnlineSimPosts, getOnlineSimAttitude, getOnlineSimStats, interpretAttitude, getOnlineSimHistory } from '../api/index.js'
 
@@ -423,6 +425,8 @@ const Y_TICKS = [-1, -0.5, 0, 0.5, 1]
 const simResult      = ref(null)
 const profilesMap    = ref({})
 const followingMap   = ref({})   // user_id → [user_id, ...]
+const router = useRouter()
+
 const oasisAgents    = ref([])
 const expandedAgent = ref(null)
 
@@ -837,6 +841,21 @@ onBeforeUnmount(() => {
   overflow: hidden;
   background: var(--bg);
 }
+
+/* ── Nav back button ── */
+.nav-back-btn {
+  margin-right: 12px;
+  padding: 5px 12px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-dim);
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  cursor: pointer;
+  transition: color 0.15s, background 0.15s;
+}
+.nav-back-btn:hover { color: var(--text); background: rgba(0,0,0,0.04); }
 
 /* ── Step indicator ── */
 .step-indicator { display: flex; align-items: center; gap: 6px; }
