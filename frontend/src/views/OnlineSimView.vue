@@ -169,7 +169,7 @@
           <p v-if="!cfgTopic.trim() && simResult" class="hint-text">
             Enter a campaign topic to start
           </p>
-          <button class="btn-next-step" @click="$router.push('/interview')">
+          <button class="btn-next-step" @click="goToInterview">
             Next Step →
           </button>
         </div>
@@ -620,6 +620,15 @@ function buildOasisAgent(agent) {
     _intention:  agent.intention,
     _occupation: occ,
   }
+}
+
+// ── Navigate to Interview ──────────────────────────────────────
+
+function goToInterview() {
+  if (onlineSimId.value) {
+    localStorage.setItem('latestOnlineSimId', onlineSimId.value)
+  }
+  router.push('/interview')
 }
 
 // ── Interventions ─────────────────────────────────────────────

@@ -411,11 +411,20 @@ const urbanSimId     = ref(null)
 const onlineSimId    = ref(null)
 
 onMounted(() => {
+  // agents and urbanSimId come from simResult saved by SimulationView
   try {
-    const raw = localStorage.getItem('selectedAgents')
-    if (raw) selectedAgents.value = JSON.parse(raw)
+    const raw = localStorage.getItem('simResult')
+    if (raw) {
+      const simResult = JSON.parse(raw)
+      if (simResult.agents?.length) {
+        selectedAgents.value = simResult.agents
+      }
+      if (simResult.sim_id) {
+        urbanSimId.value = simResult.sim_id
+      }
+    }
   } catch {}
-  urbanSimId.value  = localStorage.getItem('latestSimId')  || null
+  // onlineSimId saved by OnlineSimView when clicking Next Step
   onlineSimId.value = localStorage.getItem('latestOnlineSimId') || null
 })
 
