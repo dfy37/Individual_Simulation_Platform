@@ -34,8 +34,10 @@ from storage   import (list_simulations, get_simulation_meta,
                        get_simulation_steps)
 from config    import PROFILES_PATH, RELATIONSHIPS_PATH
 from marketing.online_sim import bp as online_sim_bp
+from interview import bp as interview_bp
 
 app.register_blueprint(online_sim_bp)
+app.register_blueprint(interview_bp)
 
 # 活跃仿真（内存，进程重启后清空）
 _active: dict[str, SimulationState] = {}

@@ -169,6 +169,9 @@
           <p v-if="!cfgTopic.trim() && simResult" class="hint-text">
             Enter a campaign topic to start
           </p>
+          <button class="btn-next-step" @click="$router.push('/interview')">
+            Next Step →
+          </button>
         </div>
       </aside>
 
@@ -1159,6 +1162,14 @@ input[type=range]::-webkit-slider-thumb {
 .btn-start:hover:not(:disabled) { opacity: .9; transform: translateY(-1px); box-shadow: 0 6px 24px rgba(124,58,237,.3); }
 .btn-start:disabled { opacity: .4; cursor: not-allowed; }
 .hint-text { font-size: 11px; color: var(--text-muted); text-align: center; margin-top: 6px; }
+.btn-next-step {
+  display: flex; align-items: center; justify-content: center;
+  width: 100%; margin-top: 8px; padding: 10px;
+  background: transparent; color: var(--purple); font-weight: 600; font-size: 13px;
+  border: 1.5px solid var(--purple); border-radius: 10px;
+  cursor: pointer; transition: background .15s; font-family: inherit;
+}
+.btn-next-step:hover { background: rgba(124,58,237,.08); }
 .dot-pulse { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: #fff; animation: pulse 1.2s ease-in-out infinite; }
 @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: .3; } }
 
