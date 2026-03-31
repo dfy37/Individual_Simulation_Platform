@@ -4,6 +4,7 @@ BackendState + LiveStagePlanner
 """
 
 from dataclasses import dataclass, field
+from math import ceil
 from typing import Any, Dict, List, Optional
 
 
@@ -15,29 +16,81 @@ class BackendState:
     finished: bool = False
     qa_pairs: List[Dict[str, Any]] = field(default_factory=list)
     answered_ids: List[int] = field(default_factory=list)
+    asked_question_ids: List[int] = field(default_factory=list)
     skipped_ids: List[int] = field(default_factory=list)
     deferred_ids: List[int] = field(default_factory=list)
     current_qid: Optional[int] = None
     stage_name: str = "basic"
     stage_goal: str = ""
     used_turns: int = 0
+    main_turns_used: int = 0
+    followup_turns_used: int = 0
     max_turns: int = 0
+    followup_budget: int = 0
     question_followup_done: Dict[int, bool] = field(default_factory=dict)
     followup_history: List[Dict[str, Any]] = field(default_factory=list)
     question_map: Dict[int, Dict[str, Any]] = field(default_factory=dict)
+    question_sequence: List[int] = field(default_factory=list)
     awaiting_followup_answer: bool = False
     pending_followup_qid: Optional[int] = None
     interview_transcript: List[Dict[str, Any]] = field(default_factory=list)
+    in_recovery_phase: bool = False
 
     def __post_init__(self):
         if not self.question_map:
             for q in self.questions:
                 try:
-                    self.question_map[int(q.get("id"))] = q
+                    qid = int(q.get("id"))
                 except Exception:
                     continue
+                self.question_map[qid] = q
+                self.question_sequence.append(qid)
+        if self.followup_budget <= 0:
+            q_cnt = len(self.question_sequence)
+            self.followup_budget = min(5, max(2, ceil(q_cnt * 0.25))) if q_cnt else 2
         if self.max_turns <= 0:
-            self.max_turns = max(6, len(self.questions) * 3)
+            self.max_turns = len(self.question_sequence) + self.followup_budget
+
+    def remaining_primary_ids(self) -> List[int]:
+        return [
+            qid for qid in self.question_sequence
+            if qid not in self.asked_question_ids and qid not in self.skipped_ids
+        ]
+
+    def recovery_question_ids(self) -> List[int]:
+        return [
+            qid for qid in self.question_sequence
+            if qid in self.deferred_ids
+            and qid not in self.answered_ids
+            and qid not in self.skipped_ids
+            and not self.question_followup_done.get(qid, False)
+        ]
+
+    def has_followup_budget(self) -> bool:
+        return self.followup_turns_used < self.followup_budget
+
+    def mark_question_asked(self, qid: int) -> None:
+        if qid not in self.asked_question_ids:
+            self.asked_question_ids.append(qid)
+
+    def add_transcript_turn(
+        self,
+        role: str,
+        content: str,
+        qid: int,
+        is_followup: bool,
+        stage_name: str = "",
+        event_type: str = "",
+    ) -> None:
+        self.interview_transcript.append({
+            "turn":        len(self.interview_transcript) + 1,
+            "role":        role,
+            "content":     content,
+            "event_type":  event_type,
+            "current_qid": qid,
+            "is_followup": is_followup,
+            "stage":       stage_name,
+        })
 
 
 class LiveStagePlanner:
@@ -67,12 +120,12 @@ class LiveStagePlanner:
         return "core"
 
     def plan(self, state: BackendState) -> Dict[str, Any]:
-        remaining = [
-            int(q.get("id"))
-            for q in state.questions
-            if int(q.get("id")) not in state.answered_ids
-            and int(q.get("id")) not in state.skipped_ids
-        ]
+        remaining = state.remaining_primary_ids()
+        recovery_mode = False
+        if not remaining and state.has_followup_budget():
+            remaining = state.recovery_question_ids()
+            recovery_mode = bool(remaining)
+
         stage_candidates: Dict[str, List[int]] = {s: [] for s in self.stage_order}
         for qid in remaining:
             q = state.question_map.get(qid, {})
@@ -88,4 +141,5 @@ class LiveStagePlanner:
             "stage_name":       stage_name,
             "stage_goal":       self.stage_goals.get(stage_name, ""),
             "stage_candidates": stage_candidates.get(stage_name, []),
+            "recovery_mode":    recovery_mode,
         }

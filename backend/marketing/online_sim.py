@@ -152,6 +152,110 @@ def _get_state(sim_id: str) -> OnlineSimState | None:
         return None
 
 
+def get_session_agents(sim_id: str) -> list[dict[str, Any]]:
+    """
+    Return per-agent online simulation summaries mapped back to the original
+    interview agent ids, so Step 4 can enrich persona prompts.
+    """
+    state = _get_state(sim_id)
+    if not state:
+        return []
+
+    def _normalize_agent_id(value: Any) -> Any:
+        try:
+            return int(value)
+        except (TypeError, ValueError):
+            return value
+
+    summaries: dict[Any, dict[str, Any]] = {}
+    for sim_agent_id, meta in state.agent_map.items():
+        orig_id = _normalize_agent_id(meta.get("orig_id", sim_agent_id))
+        summaries[orig_id] = {
+            "agent_id": orig_id,
+            "name": meta.get("name", ""),
+            "group": meta.get("group", ""),
+            "posts": [],
+            "final_attitude": None,
+        }
+
+    if not os.path.exists(state.db_path):
+        return list(summaries.values())
+
+    conn: sqlite3.Connection | None = None
+    try:
+        conn = sqlite3.connect(state.db_path)
+
+        def _tbl_exists(name: str) -> bool:
+            return conn.execute(
+                "SELECT 1 FROM sqlite_master WHERE type='table' AND name=?", (name,)
+            ).fetchone() is not None
+
+        if _tbl_exists("post"):
+            for user_id, content in conn.execute(
+                "SELECT user_id, content FROM post WHERE content != '' ORDER BY post_id ASC LIMIT 500"
+            ).fetchall():
+                try:
+                    sim_uid = int(user_id)
+                except (TypeError, ValueError):
+                    continue
+                meta = state.agent_map.get(sim_uid, {})
+                orig_id = _normalize_agent_id(meta.get("orig_id", sim_uid))
+                item = summaries.setdefault(orig_id, {
+                    "agent_id": orig_id,
+                    "name": meta.get("name", ""),
+                    "group": meta.get("group", ""),
+                    "posts": [],
+                    "final_attitude": None,
+                })
+                if content:
+                    item["posts"].append({"content": str(content)})
+
+        attitude_tables = [
+            row[0] for row in conn.execute(
+                "SELECT name FROM sqlite_master WHERE type='table' ORDER BY name"
+            ).fetchall()
+            if row[0] == "log_attitude_average"
+            or row[0].startswith("attitude_")
+            or row[0].startswith("log_attitude_")
+        ]
+        for table in attitude_tables:
+            cols = {row[1] for row in conn.execute(f"PRAGMA table_info({table})").fetchall()}
+            if not {"agent_id", "attitude_score", "time_step"}.issubset(cols):
+                continue
+            rows = conn.execute(f"""
+                SELECT agent_id, attitude_score
+                FROM {table}
+                WHERE time_step = (
+                    SELECT MAX(time_step) FROM {table} inner_t
+                    WHERE inner_t.agent_id = {table}.agent_id
+                )
+            """).fetchall()
+            for agent_id, score in rows:
+                try:
+                    sim_uid = int(agent_id)
+                except (TypeError, ValueError):
+                    continue
+                meta = state.agent_map.get(sim_uid, {})
+                orig_id = _normalize_agent_id(meta.get("orig_id", sim_uid))
+                item = summaries.setdefault(orig_id, {
+                    "agent_id": orig_id,
+                    "name": meta.get("name", ""),
+                    "group": meta.get("group", ""),
+                    "posts": [],
+                    "final_attitude": None,
+                })
+                item["final_attitude"] = float(score) if score is not None else None
+            break
+
+    except Exception as exc:
+        logger.warning(f"get_session_agents failed for {sim_id}: {exc}")
+    finally:
+        if conn:
+            conn.close()
+
+    return list(summaries.values())
+
+
 # ── Agent CSV 生成 ────────────────────────────────────────────
 def _make_agent_csv(agents: list[dict], path: Path, metric_key: str) -> dict[int, dict]:
     """

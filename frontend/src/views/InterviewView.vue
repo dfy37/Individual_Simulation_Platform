@@ -93,6 +93,19 @@
                 Agent 列表
                 <span class="count-pill">{{ doneCount }}/{{ selectedAgents.length }}</span>
               </div>
+              <div class="agent-batch-toolbar">
+                <label class="agent-batch-check" @click.stop>
+                  <input type="checkbox" :checked="allBatchSelected"
+                         @change.stop="toggleSelectAllBatch($event.target.checked)" />
+                  <span>全选</span>
+                </label>
+                <button class="btn-batch-lite" @click="clearBatchSelection">清空</button>
+                <button class="btn-batch-run" :disabled="!runnableBatchCount || batchLaunching"
+                        @click="runSelectedInterviews">
+                  {{ batchLaunching ? '启动中…' : `运行所选 (${runnableBatchCount})` }}
+                </button>
+              </div>
+
               <div class="agent-interview-list">
                 <div
                   v-for="a in selectedAgents" :key="a.id"
@@ -100,6 +113,13 @@
                   :class="{ selected: selectedAgentId === a.id }"
                   @click="selectAgent(a.id)"
                 >
+                  <label class="agent-row-check" @click.stop>
+                    <input
+                      type="checkbox"
+                      :checked="isBatchSelected(a.id)"
+                      @change.stop="toggleBatchSelection(a.id, $event.target.checked)"
+                    />
+                  </label>
                   <div class="agent-iv-avatar" :style="{ background: avatarColor(a.id) }">
                     {{ (a.name || '?')[0] }}
                   </div>
@@ -129,6 +149,9 @@
             <div class="progress-summary">
               已完成 <strong>{{ doneCount }}</strong> / {{ selectedAgents.length }} 人
             </div>
+            <div class="progress-summary sub">
+              已勾选 <strong>{{ batchSelectedIds.length }}</strong> 人
+            </div>
             <button v-if="doneCount >= 1" class="btn-summary" @click="goToSummary">
               查看汇总 →
             </button>
@@ -152,18 +175,37 @@
           <div v-else class="questionnaire-editor">
             <div class="qe-header">
               <div class="qe-title">问卷草稿 · {{ questions.length }} 题</div>
-              <div class="qe-hint">点击题目文字可直接编辑，可调整顺序与类型</div>
+              <div class="qe-hint">可直接编辑题目，拖动左侧把手调整顺序</div>
             </div>
 
             <div class="qe-table">
               <div class="qe-thead">
+                <span class="col-drag"></span>
                 <span class="col-idx">#</span>
                 <span class="col-stage">阶段</span>
                 <span class="col-question">题目</span>
                 <span class="col-type">类型</span>
                 <span class="col-action"></span>
               </div>
-              <div v-for="(q, idx) in questions" :key="q.id" class="qe-row">
+              <div
+                v-for="(q, idx) in questions" :key="q.id"
+                class="qe-row"
+                :class="{
+                  'qe-row-dragging': draggingQuestionId === q.id,
+                  'qe-row-drop-target': questionDropIndex === idx && draggingQuestionId !== q.id,
+                }"
+                @dragover.prevent="handleQuestionDragOver(idx)"
+                @drop.prevent="dropQuestion(idx)"
+              >
+                <span class="col-drag">
+                  <button
+                    class="q-drag-handle"
+                    type="button"
+                    draggable="true"
+                    @dragstart="startQuestionDrag(q.id)"
+                    @dragend="endQuestionDrag"
+                  >⋮⋮</button>
+                </span>
                 <span class="col-idx">{{ idx + 1 }}</span>
                 <span class="col-stage">
                   <span class="stage-badge" :class="`stage-${q.stage}`">{{ q.stage }}</span>
@@ -201,8 +243,30 @@
         <template v-else-if="phase === 'interview'">
           <div v-if="!selectedAgentId" class="empty-state">
             <div class="empty-icon">👤</div>
-            <div class="empty-title">选择一个 Agent 开始访谈</div>
-            <div class="empty-sub">点击左侧列表中的任意 Agent</div>
+            <div class="empty-title">选择一个 Agent 查看详情</div>
+            <div class="empty-sub">左侧点击用户后，可在右侧决定是否执行访谈</div>
+          </div>
+
+          <div v-else-if="showPendingCard" class="agent-pending-card">
+            <div class="pending-avatar" :style="{ background: avatarColor(selectedAgentId) }">
+              {{ currentAgentName[0] }}
+            </div>
+            <div class="pending-title">{{ currentAgentName }}</div>
+            <div class="pending-status">
+              当前状态：{{ statusLabel(currentAgentStatus) }}
+            </div>
+            <div class="pending-style" v-if="currentAgentStyle">
+              采访语气：{{ currentAgentStyle }}
+            </div>
+            <div class="pending-desc" v-if="currentAgentStatus === 'error'">
+              上一次访谈异常结束，可重新执行该用户的访谈。
+            </div>
+            <div class="pending-desc" v-else>
+              该用户还没有访谈记录。点击下方按钮开始执行。
+            </div>
+            <button class="btn-run-single" @click="executeSelectedInterview">
+              执行访谈
+            </button>
           </div>
 
           <div v-else class="chat-area">
@@ -392,7 +456,7 @@
 </template>
 
 <script setup>
-import { ref, computed, nextTick, onMounted } from 'vue'
+import { ref, computed, nextTick, onMounted, onBeforeUnmount } from 'vue'
 import { useRouter } from 'vue-router'
 import NavBar from '../components/NavBar.vue'
 import {
@@ -404,6 +468,7 @@ import {
 } from '../api/index.js'
 
 const router = useRouter()
+const interviewStreams = new Map()
 
 // ── 从 localStorage 读取上下文 ─────────────────────────────
 const selectedAgents = ref([])
@@ -441,6 +506,10 @@ const generating   = ref(false)
 const sessionId       = ref(null)
 const selectedAgentId = ref(null)
 const chatEl          = ref(null)
+const batchSelectedIds = ref([])
+const batchLaunching   = ref(false)
+const draggingQuestionId = ref(null)
+const questionDropIndex = ref(null)
 
 // agentData: { [agent_id]: { status, messages, report } }
 const agentData = ref({})
@@ -455,6 +524,17 @@ const doneCount = computed(() =>
   Object.values(agentData.value).filter(d => d.status === 'done').length
 )
 
+const allBatchSelected = computed(() =>
+  !!selectedAgents.value.length && batchSelectedIds.value.length === selectedAgents.value.length
+)
+
+const runnableBatchCount = computed(() =>
+  batchSelectedIds.value.filter(id => {
+    const status = agentStatus(id)
+    return status === 'pending' || status === 'error'
+  }).length
+)
+
 const currentAgentName = computed(() => {
   if (!selectedAgentId.value) return ''
   const a = selectedAgents.value.find(a => a.id === selectedAgentId.value)
@@ -467,6 +547,22 @@ const currentMessages = computed(() =>
 
 const currentReport = computed(() =>
   agentData.value[selectedAgentId.value]?.report || null
+)
+
+const currentAgentData = computed(() =>
+  agentData.value[selectedAgentId.value] || null
+)
+
+const currentAgentStatus = computed(() =>
+  currentAgentData.value?.status || 'pending'
+)
+
+const currentAgentStyle = computed(() =>
+  currentAgentData.value?.interviewerStyle || ''
+)
+
+const showPendingCard = computed(() =>
+  !!selectedAgentId.value && ['pending', 'error'].includes(currentAgentStatus.value)
 )
 
 const answeredCount = computed(() => {
@@ -491,6 +587,56 @@ function agentStatus(id) { return agentData.value[id]?.status || 'pending' }
 function avatarColor(id) { return COLORS[(id - 1) % COLORS.length] }
 function statusLabel(s) {
   return { pending:'待访谈', running:'访谈中…', done:'已完成', error:'出错' }[s] || s
+}
+
+function isBatchSelected(agentId) {
+  return batchSelectedIds.value.includes(agentId)
+}
+
+function toggleBatchSelection(agentId, checked) {
+  if (checked) {
+    if (!batchSelectedIds.value.includes(agentId)) {
+      batchSelectedIds.value = [...batchSelectedIds.value, agentId]
+    }
+    return
+  }
+  batchSelectedIds.value = batchSelectedIds.value.filter(id => id !== agentId)
+}
+
+function toggleSelectAllBatch(checked) {
+  batchSelectedIds.value = checked ? selectedAgents.value.map(a => a.id) : []
+}
+
+function clearBatchSelection() {
+  batchSelectedIds.value = []
+}
+
+function startQuestionDrag(questionId) {
+  draggingQuestionId.value = questionId
+}
+
+function handleQuestionDragOver(idx) {
+  if (draggingQuestionId.value == null) return
+  questionDropIndex.value = idx
+}
+
+function dropQuestion(dropIdx) {
+  if (draggingQuestionId.value == null) return
+  const fromIdx = questions.value.findIndex(q => q.id === draggingQuestionId.value)
+  if (fromIdx < 0 || fromIdx === dropIdx) {
+    endQuestionDrag()
+    return
+  }
+  const reordered = [...questions.value]
+  const [moved] = reordered.splice(fromIdx, 1)
+  reordered.splice(dropIdx, 0, moved)
+  questions.value = reordered
+  endQuestionDrag()
+}
+
+function endQuestionDrag() {
+  draggingQuestionId.value = null
+  questionDropIndex.value = null
 }
 
 // ── Phase A: Generate & Confirm ────────────────────────────
@@ -542,10 +688,17 @@ async function confirmQuestionnaire() {
     // 初始化每个 agent 的状态
     const data = {}
     for (const a of selectedAgents.value) {
-      data[a.id] = { status: 'pending', messages: [], report: null }
+      data[a.id] = {
+        status: 'pending',
+        messages: [],
+        report: null,
+        interviewerStyle: res.agent_styles?.[a.id] || '',
+      }
     }
     agentData.value = data
+    batchSelectedIds.value = selectedAgents.value.map(a => a.id)
     phase.value = 'interview'
+    selectedAgentId.value = selectedAgents.value[0]?.id || null
   } catch (e) {
     alert('创建访谈会话失败：' + (e.response?.data?.error || e.message))
   }
@@ -554,43 +707,57 @@ async function confirmQuestionnaire() {
 // ── Phase B: Per-agent Interview ───────────────────────────
 function selectAgent(agentId) {
   selectedAgentId.value = agentId
-  const ad = agentData.value[agentId]
-  if (!ad) return
+}
 
-  // 若已完成或正在进行，无需重新连接
-  if (ad.status === 'done' || ad.status === 'running') return
-
-  // 开始新的 SSE 访谈
-  startAgentInterview(agentId)
+function executeSelectedInterview() {
+  if (!selectedAgentId.value) return
+  startAgentInterview(selectedAgentId.value)
 }
 
 function startAgentInterview(agentId) {
   if (!sessionId.value) return
   const ad = agentData.value[agentId]
   if (!ad) return
+  if (ad.status === 'running') return
+
+  const prev = interviewStreams.get(agentId)
+  if (prev) {
+    prev.close()
+    interviewStreams.delete(agentId)
+  }
 
   ad.status   = 'running'
   ad.messages = []
 
   const url = interviewStreamUrl(sessionId.value, agentId)
   const es  = new EventSource(url)
+  interviewStreams.set(agentId, es)
 
   es.onmessage = async (e) => {
     let ev
     try { ev = JSON.parse(e.data) } catch { return }
 
     if (ev.type === 'qa') {
+      if (!ad.interviewerStyle && ev.question_style) {
+        ad.interviewerStyle = ev.question_style
+      }
       ad.messages.push({ type: 'question', text: ev.question, stage: ev.stage, isFollowup: false })
       ad.messages.push({ type: 'answer',   text: ev.answer,   stage: ev.stage, isFollowup: false })
     } else if (ev.type === 'followup') {
+      if (!ad.interviewerStyle && ev.question_style) {
+        ad.interviewerStyle = ev.question_style
+      }
       ad.messages.push({ type: 'question', text: ev.question, isFollowup: true })
       ad.messages.push({ type: 'answer',   text: ev.answer,   isFollowup: true })
     } else if (ev.type === 'done') {
       ad.status = 'done'
       ad.report = ev.report
+      ad.interviewerStyle = ev.report?.qa_pairs?.[0]?.question_style || ad.interviewerStyle
+      interviewStreams.delete(agentId)
       es.close()
     } else if (ev.type === 'error') {
       ad.status = 'error'
+      interviewStreams.delete(agentId)
       es.close()
     }
 
@@ -601,7 +768,32 @@ function startAgentInterview(agentId) {
 
   es.onerror = () => {
     if (ad.status !== 'done') ad.status = 'error'
+    interviewStreams.delete(agentId)
     es.close()
+  }
+}
+
+async function runSelectedInterviews() {
+  if (!sessionId.value || batchLaunching.value) return
+
+  const agentIds = batchSelectedIds.value.filter(id => {
+    const status = agentStatus(id)
+    return status === 'pending' || status === 'error'
+  })
+  if (!agentIds.length) return
+
+  batchLaunching.value = true
+  if (!selectedAgentId.value) {
+    selectedAgentId.value = agentIds[0]
+  }
+
+  try {
+    for (const agentId of agentIds) {
+      startAgentInterview(agentId)
+      await new Promise(resolve => setTimeout(resolve, 150))
+    }
+  } finally {
+    batchLaunching.value = false
   }
 }
 
@@ -627,6 +819,13 @@ async function doAnalyze() {
     analyzing.value = false
   }
 }
+
+onBeforeUnmount(() => {
+  for (const es of interviewStreams.values()) {
+    es.close()
+  }
+  interviewStreams.clear()
+})
 </script>
 
 <style scoped>
@@ -657,6 +856,54 @@ async function doAnalyze() {
   width: 270px; min-width: 270px; background: var(--surface);
   border-right: 1px solid var(--border);
   display: flex; flex-direction: column; overflow: hidden;
+}
+.agent-batch-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+}
+.agent-batch-check {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--text-muted);
+}
+.btn-batch-lite,
+.btn-batch-run {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--bg);
+  color: var(--text);
+  font-size: 12px;
+  padding: 6px 10px;
+  cursor: pointer;
+  font-family: inherit;
+}
+.btn-batch-run {
+  background: var(--grad);
+  color: #fff;
+  border-color: transparent;
+}
+.btn-batch-lite:disabled,
+.btn-batch-run:disabled {
+  opacity: .5;
+  cursor: not-allowed;
+}
+.agent-row-check {
+  display: flex;
+  align-items: center;
+  padding-right: 4px;
+}
+.agent-row-check input,
+.agent-batch-check input {
+  cursor: pointer;
+}
+.progress-summary.sub {
+  margin-top: 4px;
+  color: var(--text-muted);
 }
 .sidebar-scroll { flex: 1; overflow-y: auto; padding: 16px 12px; }
 .sidebar-footer  { padding: 12px; border-top: 1px solid var(--border); }
@@ -762,22 +1009,36 @@ async function doAnalyze() {
   border-radius: 12px; overflow: hidden;
 }
 .qe-thead {
-  display: grid; grid-template-columns: 36px 80px 1fr 90px 36px;
+  display: grid; grid-template-columns: 32px 36px 80px 1fr 90px 36px;
   padding: 8px 12px; border-bottom: 1px solid var(--border);
   font-size: 11px; font-weight: 700; text-transform: uppercase;
   letter-spacing: .05em; color: var(--text-muted);
 }
 .qe-row {
-  display: grid; grid-template-columns: 36px 80px 1fr 90px 36px;
+  display: grid; grid-template-columns: 32px 36px 80px 1fr 90px 36px;
   align-items: center; padding: 7px 12px;
   border-bottom: 1px solid var(--border);
+  transition: background .15s, box-shadow .15s;
 }
 .qe-row:last-child { border-bottom: none; }
+.qe-row-dragging { opacity: .55; }
+.qe-row-drop-target { background: rgba(124,58,237,.08); box-shadow: inset 0 0 0 1px rgba(124,58,237,.22); }
+.col-drag { display: flex; align-items: center; justify-content: center; }
 .col-idx   { font-size: 12px; color: var(--text-muted); }
 .col-stage { }
 .col-question { padding: 0 8px; }
 .col-type  { }
 .col-action { text-align: right; }
+.q-drag-handle {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  cursor: grab;
+  font-size: 14px;
+  line-height: 1;
+  padding: 2px 4px;
+}
+.q-drag-handle:active { cursor: grabbing; }
 
 /* Stage badges */
 .stage-badge {
@@ -827,6 +1088,44 @@ async function doAnalyze() {
 }
 .btn-confirm:disabled { opacity: .4; cursor: not-allowed; }
 .btn-confirm:hover:not(:disabled) { opacity: .9; }
+
+/* ── Pending card ── */
+.agent-pending-card {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 40px 24px;
+  text-align: center;
+}
+.pending-avatar {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 22px;
+  font-weight: 700;
+  color: #fff;
+}
+.pending-title { font-size: 20px; font-weight: 700; color: var(--text); }
+.pending-status,
+.pending-style,
+.pending-desc { font-size: 13px; color: var(--text-muted); max-width: 420px; line-height: 1.6; }
+.btn-run-single {
+  padding: 11px 20px;
+  border: none;
+  border-radius: 10px;
+  background: var(--grad);
+  color: #fff;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: inherit;
+}
 
 /* ── Chat area ── */
 .chat-area { display: flex; flex-direction: column; flex: 1; overflow: hidden; }
