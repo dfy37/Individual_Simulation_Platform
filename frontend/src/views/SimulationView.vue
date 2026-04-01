@@ -602,11 +602,14 @@ function connectSSE(simId) {
 async function startSim() {
   const agentParams = JSON.parse(localStorage.getItem('agentParams') || '{}')
   const params = {
-    num_agents:   agentParams.num_agents ?? 10,
-    num_steps:    cfgSteps.value,
-    tick_seconds: cfgTick.value,
-    concurrency:  cfgConcurrency.value,
-    start_time:   cfgStartTime.value.replace('T', ' ') + ':00',
+    num_agents:     agentParams.num_agents ?? 10,
+    agent_ids:      agentParams.agent_ids  ?? [],
+    sampling_query: agentParams.sampling_query ?? '',
+    sampling_spec:  agentParams.sampling_spec  ?? null,
+    num_steps:      cfgSteps.value,
+    tick_seconds:   cfgTick.value,
+    concurrency:    cfgConcurrency.value,
+    start_time:     cfgStartTime.value.replace('T', ' ') + ':00',
   }
 
   try {

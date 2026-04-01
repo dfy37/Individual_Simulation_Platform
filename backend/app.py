@@ -35,6 +35,7 @@ from storage   import (list_simulations, get_simulation_meta,
 from config    import PROFILES_PATH, RELATIONSHIPS_PATH
 from marketing.online_sim import bp as online_sim_bp
 from interview import bp as interview_bp
+from sampling  import sample_preview
 
 app.register_blueprint(online_sim_bp)
 app.register_blueprint(interview_bp)
@@ -68,6 +69,33 @@ def api_profiles():
     ])
 
 
+@app.route("/api/profiles/sample-preview", methods=["POST"])
+def api_sample_preview():
+    """
+    自然语言采样预览。
+
+    请求体：
+        query        str   自然语言采样需求
+        target_size  int   目标样本量（可选，优先于 query 中数字）
+
+    返回：
+        sampling_spec, selected_profiles, summary, diagnostics,
+        candidate_count, total_profiles
+    """
+    body = request.get_json() or {}
+    query       = body.get("query", "")
+    target_size = body.get("target_size")
+    if not query:
+        return jsonify({"error": "query 不能为空"}), 400
+    try:
+        result = sample_preview(query, target_size)
+        return jsonify(result)
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        return jsonify({"error": str(e)}), 500
+
+
 @app.route("/api/relationships")
 def api_relationships():
     """返回预生成的智能体关系网络。"""
@@ -86,11 +114,14 @@ def api_create_simulation():
     启动新仿真。
 
     请求体（JSON，均有默认值）：
-        num_agents    int   10
-        num_steps     int   12
-        tick_seconds  int   3600
-        concurrency   int   5
-        start_time    str   "2024-09-02 08:00:00"
+        num_agents      int    10
+        num_steps       int    12
+        tick_seconds    int    3600
+        concurrency     int    5
+        start_time      str    "2024-09-02 08:00:00"
+        agent_ids       list   []    # setup 阶段选定的 user_id 列表，优先按此加载
+        sampling_query  str    ""    # 原始自然语言采样需求（用于 meta 追溯）
+        sampling_spec   dict   {}    # 结构化采样规格（用于 meta 追溯）
 
     返回：
         {"sim_id": "...", "status": "pending"}

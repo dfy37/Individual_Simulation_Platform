@@ -62,7 +62,7 @@ class SocialEnvironment(Environment):
         
         "## Action Guidance\n"
         "Based on your profile, your internal attitude, "
-        "and the content, pick ONE action."
+        "and the content above, decide how to respond."
     )
  
 

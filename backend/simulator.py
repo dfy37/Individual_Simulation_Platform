@@ -140,7 +140,17 @@ async def _async_sim(state: SimulationState) -> None:
             )
         with open(PROFILES_PATH, encoding="utf-8") as f:
             all_profiles = json.load(f)
-        profiles = all_profiles[:num_agents]
+
+        # 优先按 agent_ids 精确选取，否则退回取前 num_agents 条
+        agent_ids = p.get("agent_ids")
+        if agent_ids:
+            id_set = set(str(aid) for aid in agent_ids)
+            id_order = {str(aid): i for i, aid in enumerate(agent_ids)}
+            matched = [prof for prof in all_profiles if str(prof.get("user_id", "")) in id_set]
+            matched.sort(key=lambda prof: id_order.get(str(prof.get("user_id", "")), 9999))
+            profiles = matched[:num_agents]
+        else:
+            profiles = all_profiles[:num_agents]
         logger.info(f"[simulator] 加载画像 {len(profiles)} 个")
 
         # ── 阶段3：构建 Agent ────────────────────────────
@@ -156,12 +166,14 @@ async def _async_sim(state: SimulationState) -> None:
 
         # 持久化 meta（running 前）
         meta = {
-            "sim_id":      state.sim_id,
-            "params":      p,
-            "agents":      agents_meta,
-            "start_time":  state.start_time,
-            "status":      "initializing",
-            "total_steps": num_steps,
+            "sim_id":          state.sim_id,
+            "params":          p,
+            "agents":          agents_meta,
+            "start_time":      state.start_time,
+            "status":          "initializing",
+            "total_steps":     num_steps,
+            "sampling_query":  p.get("sampling_query"),
+            "sampling_spec":   p.get("sampling_spec"),
         }
         save_meta(state.sim_id, meta)
 

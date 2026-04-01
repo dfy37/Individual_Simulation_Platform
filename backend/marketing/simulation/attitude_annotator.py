@@ -5,12 +5,16 @@ import json
 import logging
 import time
 import math
+import os
 from tqdm.asyncio import tqdm_asyncio
 from typing import Dict, List, Optional, Tuple,Union
 from openai import AsyncOpenAI
 import torch
 from transformers import AutoModelForCausalLM, AutoTokenizer
-import os
+
+# deepseek 是国内 API，绕过本地代理避免长连接断开
+os.environ.setdefault("NO_PROXY", "api.deepseek.com")
+os.environ.setdefault("no_proxy", "api.deepseek.com")
 # ... logger 定义保持不变 ...
 logger = logging.getLogger("AttitudeAnnotation")
 
