@@ -273,7 +273,8 @@ def create_and_register_single_agent(
         "user_profile": user_profile.get("user_char", ""),
         "original_user_id": str(user_profile.get("user_id", agent_id)),
         "group": user_profile.get("group", "default"),
-        "initial_attitude_avg": user_profile.get("initial_attitude_avg", 0.0)
+        "initial_attitude_avg": user_profile.get("initial_attitude_avg", 0.0),
+        "life_context": user_profile.get("life_context", ""),
     }
     
     # 将态度指标注入 profile
@@ -411,9 +412,10 @@ async def generate_and_register_agents(
         other_info = {
             "user_profile": row["user_char"],
             "original_user_id": int(row["user_id"]),
-            "following_agentid_list": row["following_agentid_list"], 
+            "following_agentid_list": row["following_agentid_list"],
             "group": row["group"],
-            "initial_attitude_avg": avg_score
+            "initial_attitude_avg": avg_score,
+            "life_context": row.get("life_context", "") if hasattr(row, 'get') else (row["life_context"] if "life_context" in row.index else ""),
         }
         if metric_list:
             for metric in metric_list:
@@ -677,18 +679,16 @@ async def generate_custom_agents(
     channel = platform.channel
     
     for agent in agent_list:
-        # T1 Agents (SocialAgent) - channel 已在创建时注入
+        # 统一注入 channel 到所有 agent
         if hasattr(agent, 'channel'):
              agent.channel = channel
-        
-        # T2 Agents (HeuristicAgent) - 必须注入 platform
-        if hasattr(agent, 'env') and isinstance(agent.env, SocialAction):
-             agent.env.channel = channel
-             # [!! 2. 关键修复: SocialAction 确实有 platform 属性 (我们在上一步已添加) !!]
-             agent.env.platform = platform 
+
+        # 修复: agent.env 是 SocialEnvironment（不是 SocialAction），
+        # 必须通过 agent.env.action 访问底层 SocialAction 并注入 channel。
+        # 此前 isinstance(agent.env, SocialAction) 永远为 False，导致
+        # Heuristic agents 的 channel 从未被注入，refresh() 永久挂起。
+        if hasattr(agent, 'env') and hasattr(agent.env, 'action'):
              agent.env.action.channel = channel
-             # [!! 3. 关键修复: SocialAction.action 就是 SocialAction 自己 !!]
-             agent.env.action.platform = platform 
 
     logger.info("... (generate_custom_agents) 注入完成。")
     

@@ -6,7 +6,7 @@ from pathlib import Path
 # ── 目录 ──────────────────────────────────────────────────
 BACKEND_DIR   = Path(__file__).parent                          # backend/
 RESULTS_DIR   = BACKEND_DIR / "results"
-PROFILES_PATH       = BACKEND_DIR / "users" / "student_profiles.json"
+PROFILES_PATH       = BACKEND_DIR / "users" / "student_profiles_expanded.json"
 RELATIONSHIPS_PATH  = BACKEND_DIR / "users" / "relationships.json"
 
 RESULTS_DIR.mkdir(exist_ok=True)

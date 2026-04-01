@@ -4,7 +4,6 @@
     <!-- NavBar — Step 3 active -->
     <NavBar>
       <template #right>
-        <button class="nav-back-btn" @click="router.push('/simulation')">← Back</button>
         <div class="step-indicator">
           <div class="step-pip done">1</div>
           <div class="step-line done"></div>
@@ -62,6 +61,11 @@
           <div class="cfg-section">
             <div class="cfg-section-title">Campaign</div>
             <div class="form-row">
+              <label class="form-label">Simulation Name / 模拟名称</label>
+              <input class="form-control" v-model="cfgSimName"
+                     placeholder="例：TNT演唱会正面营销测试" />
+            </div>
+            <div class="form-row">
               <label class="form-label">Topic / 营销主题</label>
               <input class="form-control" v-model="cfgTopic"
                      placeholder="e.g. TNT演唱会, 新品发布" />
@@ -97,9 +101,9 @@
               <div class="iv-card-header">
                 <span class="iv-idx">#{{ idx + 1 }}</span>
                 <select class="form-control iv-type" v-model="iv.type">
-                  <option value="broadcast">📢 Broadcast</option>
-                  <option value="bribery">💰 Bribery</option>
-                  <option value="register_user">🤖 Bot Inject</option>
+                  <option value="broadcast">📢 广播</option>
+                  <option value="bribery">💰 定向激励</option>
+                  <option value="register_user">🤖 注入 Bot</option>
                 </select>
                 <div class="iv-step-wrap">
                   <span class="iv-step-label">Step</span>
@@ -108,12 +112,64 @@
                 </div>
                 <button class="btn-del" @click="interventions.splice(idx, 1)">×</button>
               </div>
-              <textarea class="form-control iv-body" v-model="iv.content"
-                        :placeholder="ivPlaceholder(iv.type)" rows="2" />
-              <input v-if="iv.type === 'bribery'" class="form-control"
-                     style="margin-top:6px"
-                     v-model="iv.target_group"
-                     placeholder="Target group (e.g. 活跃KOL)" />
+
+              <!-- ── Broadcast ── -->
+              <template v-if="iv.type === 'broadcast'">
+                <div class="iv-hint">所有 Agent 都会在 Timeline 上看到此消息</div>
+                <textarea class="form-control iv-body" v-model="iv.content"
+                          placeholder="例：官方宣布演唱会时间为9月15日" rows="2" />
+              </template>
+
+              <!-- ── Bribery ── -->
+              <template v-if="iv.type === 'bribery'">
+                <div class="iv-hint">向指定群组的部分 Agent 发送私密指令，引导其行动</div>
+                <div class="iv-form-grid">
+                  <label class="iv-label">目标群组</label>
+                  <select class="form-control" v-model="iv.target_group">
+                    <option value="">全部</option>
+                    <option value="活跃KOL">活跃KOL</option>
+                    <option value="普通用户">普通用户</option>
+                    <option value="潜水用户">潜水用户</option>
+                  </select>
+                  <label class="iv-label">投放比例</label>
+                  <div class="iv-range-wrap">
+                    <input type="range" min="0" max="1" step="0.1" v-model.number="iv.ratio" />
+                    <span class="iv-range-val">{{ Math.round((iv.ratio || 1) * 100) }}%</span>
+                  </div>
+                </div>
+                <label class="iv-label" style="margin-top:6px">指令内容</label>
+                <textarea class="form-control iv-body" v-model="iv.content"
+                          placeholder="例：您收到主办方合作邀请，请为演唱会发帖推广" rows="2" />
+              </template>
+
+              <!-- ── Bot Inject ── -->
+              <template v-if="iv.type === 'register_user'">
+                <div class="iv-hint">在该步骤注册一个新的 Bot Agent 加入仿真</div>
+                <div class="iv-form-grid">
+                  <label class="iv-label">名称</label>
+                  <input class="form-control" v-model="iv.bot_name" placeholder="品牌官方号" />
+                  <label class="iv-label">用户名</label>
+                  <input class="form-control" v-model="iv.bot_username" placeholder="brand_official" />
+                  <label class="iv-label">所属群组</label>
+                  <select class="form-control" v-model="iv.bot_group">
+                    <option value="活跃KOL">活跃KOL</option>
+                    <option value="普通用户">普通用户</option>
+                  </select>
+                  <label class="iv-label">初始态度</label>
+                  <div class="iv-range-wrap">
+                    <input type="range" min="-1" max="1" step="0.1" v-model.number="iv.bot_attitude" />
+                    <span class="iv-range-val" :class="iv.bot_attitude > 0 ? 'pos' : iv.bot_attitude < 0 ? 'neg' : ''">
+                      {{ iv.bot_attitude > 0 ? '+' : '' }}{{ (iv.bot_attitude || 0).toFixed(1) }}
+                    </span>
+                  </div>
+                </div>
+                <label class="iv-label" style="margin-top:6px">人设描述</label>
+                <textarea class="form-control iv-body" v-model="iv.bot_persona"
+                          placeholder="例：你是某品牌的官方社媒账号，语气专业权威，倾向于正面宣传产品" rows="2" />
+                <label class="iv-label" style="margin-top:6px">注册后行动指令 <span class="iv-optional">（选填）</span></label>
+                <textarea class="form-control iv-body" v-model="iv.content"
+                          placeholder="例：请立即发布一条帖子，宣传品牌新产品的优势" rows="2" />
+              </template>
             </div>
           </div>
 
@@ -132,10 +188,16 @@
                 @click="loadHistorySim(rec.sim_id)"
               >
                 <div class="hist-card-row">
-                  <span class="hist-topic">{{ rec.topic || '—' }}</span>
+                  <span class="hist-topic">{{ rec.sim_name || rec.topic || '—' }}</span>
                   <span class="hist-status" :class="historyStatusClass(rec.status)">
                     {{ historyStatusLabel(rec.status) }}
                   </span>
+                  <button
+                    v-if="rec.status !== 'running'"
+                    class="hist-del-btn"
+                    title="删除"
+                    @click="deleteSim(rec.sim_id, $event)"
+                  >&times;</button>
                 </div>
                 <div class="hist-meta">
                   {{ formatHistoryTime(rec.start_time) }}
@@ -169,9 +231,18 @@
           <p v-if="!cfgTopic.trim() && simResult" class="hint-text">
             Enter a campaign topic to start
           </p>
-          <button class="btn-next-step" @click="goToInterview">
-            Next Step →
+        </div>
+      <!-- Next Step -->
+        <div class="next-step-wrap">
+          <button class="btn-next-step" :disabled="!simDone" @click="handleNextStep">
+            Next Step
+            <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M3 8h10M9 4l4 4-4 4"/>
+            </svg>
           </button>
+          <div class="next-step-hint" v-if="!simDone">
+            Complete the simulation to proceed
+          </div>
         </div>
       </aside>
 
@@ -405,16 +476,15 @@
 import { ref, computed, onMounted, onBeforeUnmount, nextTick } from 'vue'
 import { useRouter } from 'vue-router'
 import NavBar from '../components/NavBar.vue'
-import { getProfiles, getRelationships, startOnlineSim, getOnlineSimPosts, getOnlineSimAttitude, getOnlineSimStats, interpretAttitude, getOnlineSimHistory } from '../api/index.js'
+import { getProfiles, getRelationships, startOnlineSim, getOnlineSimPosts, getOnlineSimAttitude, getOnlineSimStats, interpretAttitude, getOnlineSimHistory, deleteOnlineSim } from '../api/index.js'
+
+const router = useRouter()
 
 // ── Constants ────────────────────────────────────────────────
 
 const GROUP_COLORS = {
-  '权威媒体/大V': '#3b82f6',
-  '活跃KOL':     '#f97316',
-  '活跃创作者':  '#22c55e',
-  '普通用户':    '#64748b',
-  '潜水用户':    '#94a3b8',
+  '活跃KOL':  '#f97316',
+  '普通用户': '#64748b',
 }
 
 // Chart geometry (matches SVG viewBox "0 0 560 220")
@@ -428,11 +498,10 @@ const Y_TICKS = [-1, -0.5, 0, 0.5, 1]
 const simResult      = ref(null)
 const profilesMap    = ref({})
 const followingMap   = ref({})   // user_id → [user_id, ...]
-const router = useRouter()
-
 const oasisAgents    = ref([])
 const expandedAgent = ref(null)
 
+const cfgSimName     = ref('')
 const cfgTopic       = ref('')
 const cfgSteps       = ref(4)
 const cfgConcurrency = ref(3)
@@ -490,11 +559,8 @@ function groupBadgeStyle(group) {
 
 function groupShort(group) {
   const MAP = {
-    '权威媒体/大V': 'Media/V',
-    '活跃KOL':     'KOL',
-    '活跃创作者':  'Creator',
-    '普通用户':    'Regular',
-    '潜水用户':    'Lurker',
+    '活跃KOL':  'KOL',
+    '普通用户': 'Regular',
   }
   return MAP[group] || group
 }
@@ -543,6 +609,15 @@ function sliderStyle(val, min, max) {
   return `background: linear-gradient(to right, var(--purple) ${pct}, var(--border) ${pct})`
 }
 
+// ── Next Step ─────────────────────────────────────────────────
+
+function handleNextStep() {
+  if (onlineSimId.value) {
+    localStorage.setItem('latestOnlineSimId', onlineSimId.value)
+  }
+  router.push('/interview')
+}
+
 // ── Chart helpers ─────────────────────────────────────────────
 
 function chartX(idx, total) {
@@ -566,18 +641,8 @@ function buildPath(groupName) {
 // ── Profile → OASIS mapping ───────────────────────────────────
 
 function classifyGroup(agent, profile) {
-  const occ = (profile?.occupation || agent.occupation || '').toLowerCase()
-  const interests = profile?.interests || []
   const social = agent.needs?.social ?? 0.5
-
-  if (occ.includes('博士') || occ.includes('研究生') || occ.includes('硕士'))
-    return '权威媒体/大V'
-
-  const creativeKw = ['写作', '摄影', '视频', '创作', '艺术', '绘画', '音乐', '设计']
-  if (interests.some(i => creativeKw.includes(i))) return '活跃创作者'
-
   if (social > 0.7) return '活跃KOL'
-  if (social < 0.25) return '潜水用户'
   return '普通用户'
 }
 
@@ -586,13 +651,13 @@ function buildUserChar(agent, profile) {
   const occ      = profile?.occupation || agent.occupation || '学生'
   const gender   = profile?.gender === 'male' ? '男生' : '女生'
   const interests = (profile?.interests || []).slice(0, 3).join('、')
-  const intention = agent.intention || ''
 
   let char = `你是${name}，${gender}，${occ}。`
   if (interests) char += `兴趣爱好包括${interests}。`
-  if (intention) char += `你最近的活动是"${truncate(intention, 30)}"。`
-  if (cfgTopic.value) char += `你最近在关注「${cfgTopic.value}」这个话题，对此有自己的看法和态度。`
-  char += `在社交平台上，你会以自然的方式表达自己对话题的真实看法。`
+  if (cfgTopic.value) {
+    char += `你正在关注「${cfgTopic.value}」这个话题，会根据自己的经历和立场发表看法。`
+  }
+  char += `你在社交平台上会积极参与讨论，发帖、点赞或转发来表达自己的真实观点。`
   return char
 }
 
@@ -622,26 +687,41 @@ function buildOasisAgent(agent) {
   }
 }
 
-// ── Navigate to Interview ──────────────────────────────────────
-
-function goToInterview() {
-  if (onlineSimId.value) {
-    localStorage.setItem('latestOnlineSimId', onlineSimId.value)
-  }
-  router.push('/interview')
-}
-
 // ── Interventions ─────────────────────────────────────────────
 
 function addIntervention() {
-  interventions.value.push({ step: 1, type: 'broadcast', content: '', target_group: '' })
+  interventions.value.push({
+    step: 1, type: 'broadcast', content: '',
+    // bribery fields
+    target_group: '', ratio: 1.0,
+    // bot inject fields
+    bot_name: '', bot_username: '', bot_group: '活跃KOL',
+    bot_persona: '', bot_attitude: 0.0,
+  })
 }
 
-function ivPlaceholder(type) {
-  if (type === 'broadcast')     return '广播消息内容（如：官宣演唱会时间为9月15日）'
-  if (type === 'bribery')       return '激励文本（如：您收到主办方合作邀请，请为演唱会发帖推广）'
-  if (type === 'register_user') return 'Bot画像 JSON（如：{"persona": "pro-brand insider", "group": "活跃KOL"}）'
-  return ''
+function serializeInterventions() {
+  return interventions.value.map(iv => {
+    const base = { step: iv.step, type: iv.type, content: iv.content || '' }
+    if (iv.type === 'bribery') {
+      base.target_group = iv.target_group || ''
+      base.ratio = iv.ratio ?? 1.0
+    }
+    if (iv.type === 'register_user') {
+      const topicKey = cfgTopic.value.trim().replace(/[^a-zA-Z0-9]/g, '_').slice(0, 24).replace(/_+$/, '') || 'topic'
+      const metricKey = `attitude_${topicKey}`
+      base.user_profile = JSON.stringify({
+        group: iv.bot_group || '活跃KOL',
+        user_char: iv.bot_persona || 'You are an influential media account.',
+        name: iv.bot_name || 'Bot',
+        username: iv.bot_username || 'bot_user',
+      })
+      base.attitude_target = JSON.stringify({
+        [metricKey]: iv.bot_attitude ?? 0.0,
+      })
+    }
+    return base
+  })
 }
 
 // ── Interpret ─────────────────────────────────────────────────
@@ -691,11 +771,32 @@ async function loadHistorySim(simId) {
     posts.value        = postsData.posts || []
     attitudeData.value = attData
     statsData.value    = stData
-    // 从历史记录里恢复 topic 显示
+    // 从历史记录里恢复名称和 topic 显示
     const rec = historyList.value.find(r => r.sim_id === simId)
-    if (rec) cfgTopic.value = rec.topic
+    if (rec) {
+      cfgSimName.value = rec.sim_name || ''
+      cfgTopic.value = rec.topic || ''
+    }
   } catch (err) {
     log(`<span class="log-err">✗ 加载历史记录失败: ${err.message}</span>`)
+  }
+}
+
+async function deleteSim(simId, ev) {
+  ev.stopPropagation()  // 阻止触发 loadHistorySim
+  if (!confirm('确定删除这条模拟记录吗？')) return
+  try {
+    await deleteOnlineSim(simId)
+    historyList.value = historyList.value.filter(r => r.sim_id !== simId)
+    if (selectedHistoryId.value === simId) {
+      selectedHistoryId.value = null
+      posts.value = []
+      attitudeData.value = null
+      statsData.value = null
+      simDone.value = false
+    }
+  } catch (err) {
+    log(`<span class="log-err">✗ 删除失败: ${err.message}</span>`)
   }
 }
 
@@ -735,13 +836,19 @@ async function startSim() {
 
   log('Preparing agent profiles…')
 
+  // 重新构建 oasisAgents，确保 user_char 包含最新的 topic
+  if (simResult.value?.agents) {
+    oasisAgents.value = simResult.value.agents.map(buildOasisAgent)
+  }
+
   try {
     const payload = {
       agents:        oasisAgents.value,
+      sim_name:      cfgSimName.value.trim() || cfgTopic.value.trim(),
       topic:         cfgTopic.value.trim(),
       total_steps:   cfgSteps.value,
       concurrency:   cfgConcurrency.value,
-      interventions: interventions.value,
+      interventions: serializeInterventions(),
     }
     const { online_sim_id } = await startOnlineSim(payload)
     onlineSimId.value = online_sim_id
@@ -853,21 +960,6 @@ onBeforeUnmount(() => {
   overflow: hidden;
   background: var(--bg);
 }
-
-/* ── Nav back button ── */
-.nav-back-btn {
-  margin-right: 12px;
-  padding: 5px 12px;
-  font-size: 13px;
-  font-weight: 500;
-  color: var(--text-dim);
-  background: transparent;
-  border: 1px solid var(--border);
-  border-radius: 6px;
-  cursor: pointer;
-  transition: color 0.15s, background 0.15s;
-}
-.nav-back-btn:hover { color: var(--text); background: rgba(0,0,0,0.04); }
 
 /* ── Step indicator ── */
 .step-indicator { display: flex; align-items: center; gap: 6px; }
@@ -1152,11 +1244,44 @@ input[type=range]::-webkit-slider-thumb {
 .iv-step-label   { font-size: 10px; color: var(--text-muted); }
 .iv-step         { width: 46px; padding: 5px 6px; font-size: 12px; text-align: center; }
 .iv-body         { font-size: 12px; resize: vertical; min-height: 48px; }
+.iv-hint         { font-size: 11px; color: var(--text-muted); margin-bottom: 8px; line-height: 1.4; }
+.iv-form-grid    { display: grid; grid-template-columns: 70px 1fr; gap: 5px 8px; align-items: center; }
+.iv-label        { font-size: 11px; font-weight: 600; color: var(--text-secondary); display: block; }
+.iv-optional     { font-weight: 400; color: var(--text-muted); }
+.iv-range-wrap   { display: flex; align-items: center; gap: 8px; }
+.iv-range-wrap input[type="range"] { flex: 1; height: 4px; accent-color: var(--purple); }
+.iv-range-val    { font-size: 12px; font-weight: 600; min-width: 38px; text-align: right; color: var(--text-secondary); }
+.iv-range-val.pos { color: #22c55e; }
+.iv-range-val.neg { color: #ef4444; }
 .btn-del         { background: none; border: none; color: var(--text-muted); font-size: 16px; cursor: pointer; padding: 0 2px; line-height: 1; flex-shrink: 0; }
 .btn-del:hover   { color: #ef4444; }
 
 /* ── Sidebar footer ── */
 .sidebar-footer { padding: 14px 20px 20px; border-top: 1px solid var(--border); flex-shrink: 0; }
+
+.next-step-wrap {
+  padding: 14px 20px 18px;
+  border-top: 1px solid var(--border);
+  background: var(--surface);
+  flex-shrink: 0;
+}
+.btn-next-step {
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  width: 100%; padding: 13px; border-radius: 10px; border: none;
+  font-size: 14px; font-weight: 600; cursor: pointer;
+  font-family: inherit; transition: opacity .2s, transform .15s, box-shadow .2s;
+  background: var(--grad); color: #fff;
+}
+.btn-next-step:disabled {
+  background: var(--border); color: var(--text-muted); cursor: not-allowed;
+}
+.btn-next-step:not(:disabled):hover {
+  opacity: .9; transform: translateY(-1px); box-shadow: 0 6px 24px rgba(167,139,250,.3);
+}
+.next-step-hint {
+  font-size: 11px; color: var(--text-muted); text-align: center;
+  margin-top: 7px; line-height: 1.5;
+}
 .log-box {
   background: #f1f3f8; border: 1px solid var(--border); border-radius: 7px;
   padding: 8px 10px; font-family: 'SF Mono','Fira Code',monospace; font-size: 10.5px;
@@ -1171,14 +1296,6 @@ input[type=range]::-webkit-slider-thumb {
 .btn-start:hover:not(:disabled) { opacity: .9; transform: translateY(-1px); box-shadow: 0 6px 24px rgba(124,58,237,.3); }
 .btn-start:disabled { opacity: .4; cursor: not-allowed; }
 .hint-text { font-size: 11px; color: var(--text-muted); text-align: center; margin-top: 6px; }
-.btn-next-step {
-  display: flex; align-items: center; justify-content: center;
-  width: 100%; margin-top: 8px; padding: 10px;
-  background: transparent; color: var(--purple); font-weight: 600; font-size: 13px;
-  border: 1.5px solid var(--purple); border-radius: 10px;
-  cursor: pointer; transition: background .15s; font-family: inherit;
-}
-.btn-next-step:hover { background: rgba(124,58,237,.08); }
 .dot-pulse { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: #fff; animation: pulse 1.2s ease-in-out infinite; }
 @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: .3; } }
 
@@ -1228,6 +1345,14 @@ input[type=range]::-webkit-slider-thumb {
 .hist-meta { font-size: 11px; color: var(--text-muted); }
 
 .hist-status { font-size: 10px; font-weight: 700; padding: 2px 7px; border-radius: 10px; flex-shrink: 0; }
+.hist-del-btn {
+  flex-shrink: 0; width: 20px; height: 20px; border: none; border-radius: 4px;
+  background: transparent; color: var(--text-muted); font-size: 14px; line-height: 1;
+  cursor: pointer; display: flex; align-items: center; justify-content: center;
+  opacity: 0; transition: opacity .15s, background .15s, color .15s;
+}
+.hist-card:hover .hist-del-btn { opacity: 1; }
+.hist-del-btn:hover { background: rgba(239,68,68,.12); color: #dc2626; }
 .hist-done    { background: rgba(22,163,74,.12); color: #16a34a; }
 .hist-running { background: rgba(234,179,8,.12); color: #a16207; }
 .hist-error   { background: rgba(239,68,68,.12); color: #dc2626; }
